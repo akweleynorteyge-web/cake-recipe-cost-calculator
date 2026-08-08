@@ -5,12 +5,15 @@
 class RecipeCostCalculator {
     constructor() {
         this.ingredients = this.loadFromStorage('ingredients') || [];
-        this.recipes = this.loadFromStorage('recipes') || {};
+        this.savedRecipes = this.loadFromStorage('savedRecipes') || [];
         this.decorations = this.loadFromStorage('decorations') || [];
         this.packaging = this.loadFromStorage('packaging') || this.initializePackaging();
         this.currentRecipe = {
+            id: null,
             name: '',
-            ingredients: []
+            servings: '',
+            ingredients: [],
+            ingredientCost: 0
         };
         this.init();
     }
@@ -67,6 +70,7 @@ class RecipeCostCalculator {
         this.renderIngredients();
         this.renderDecorations();
         this.renderPackaging();
+        this.renderSavedRecipes();
         this.updateRecipeIngredientsList();
     }
 
@@ -83,6 +87,9 @@ class RecipeCostCalculator {
         document.getElementById('recipeIngredientForm').addEventListener('submit', (e) => this.addToRecipe(e));
         document.getElementById('recipeName').addEventListener('input', (e) => {
             this.currentRecipe.name = e.target.value;
+        });
+        document.getElementById('recipeServings').addEventListener('input', (e) => {
+            this.currentRecipe.servings = e.target.value;
         });
 
         // Decorations tab
@@ -336,6 +343,109 @@ class RecipeCostCalculator {
     }
 
     // ==========================================
+    // SAVE/LOAD RECIPES
+    // ==========================================
+
+    saveRecipe() {
+        if (!this.currentRecipe.name.trim()) {
+            alert('Please enter a recipe name');
+            return;
+        }
+
+        if (this.currentRecipe.ingredients.length === 0) {
+            alert('Please add at least one ingredient to the recipe');
+            return;
+        }
+
+        const recipeToSave = {
+            id: Date.now(),
+            name: this.currentRecipe.name,
+            servings: this.currentRecipe.servings,
+            ingredients: JSON.parse(JSON.stringify(this.currentRecipe.ingredients)),
+            ingredientCost: this.currentRecipe.ingredients.reduce((sum, ing) => sum + ing.cost, 0),
+            savedAt: new Date().toLocaleString()
+        };
+
+        this.savedRecipes.push(recipeToSave);
+        this.saveToStorage('savedRecipes', this.savedRecipes);
+        this.renderSavedRecipes();
+        alert(`Recipe "${recipeToSave.name}" saved successfully!`);
+    }
+
+    clearRecipe() {
+        if (confirm('Clear the current recipe?')) {
+            this.currentRecipe = {
+                id: null,
+                name: '',
+                servings: '',
+                ingredients: [],
+                ingredientCost: 0
+            };
+            document.getElementById('recipeName').value = '';
+            document.getElementById('recipeServings').value = '';
+            this.renderRecipeIngredients();
+            this.updateCostSummary();
+        }
+    }
+
+    loadRecipe(recipeId) {
+        const recipe = this.savedRecipes.find(r => r.id === recipeId);
+        if (!recipe) return;
+
+        this.currentRecipe = {
+            id: recipe.id,
+            name: recipe.name,
+            servings: recipe.servings,
+            ingredients: JSON.parse(JSON.stringify(recipe.ingredients)),
+            ingredientCost: recipe.ingredientCost
+        };
+
+        document.getElementById('recipeName').value = recipe.name;
+        document.getElementById('recipeServings').value = recipe.servings;
+        this.renderRecipeIngredients();
+        this.updateCostSummary();
+
+        // Switch to recipe tab
+        this.switchTab('recipe');
+        alert(`Recipe "${recipe.name}" loaded!`);
+    }
+
+    deleteRecipe(recipeId) {
+        if (confirm('Are you sure you want to delete this recipe?')) {
+            this.savedRecipes = this.savedRecipes.filter(r => r.id !== recipeId);
+            this.saveToStorage('savedRecipes', this.savedRecipes);
+            this.renderSavedRecipes();
+        }
+    }
+
+    renderSavedRecipes() {
+        const list = document.getElementById('savedRecipesList');
+        
+        if (this.savedRecipes.length === 0) {
+            list.innerHTML = '<p class="empty-message">No recipes saved yet. Create and save a recipe first!</p>';
+            return;
+        }
+
+        list.innerHTML = this.savedRecipes.map(recipe => `
+            <div class="item saved-recipe-card">
+                <div class="item-info">
+                    <div class="item-name">🎂 ${recipe.name}</div>
+                    <div class="item-details">
+                        <strong>Servings/Size:</strong> ${recipe.servings || 'Not specified'}<br>
+                        <strong>Ingredients:</strong> ${recipe.ingredients.length} items<br>
+                        <strong>Ingredient Cost:</strong> GH₵${recipe.ingredientCost.toFixed(2)}<br>
+                        <strong>Saved:</strong> ${recipe.savedAt}
+                    </div>
+                </div>
+                <div class="item-actions">
+                    <button class="btn btn-primary btn-small" onclick="calculator.loadRecipe(${recipe.id})">📋 Load</button>
+                    <button class="btn btn-danger btn-small" onclick="calculator.deleteRecipe(${recipe.id})">Delete</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // ==========================================
     // DECORATIONS MANAGEMENT
     // ==========================================
 
@@ -456,6 +566,7 @@ class RecipeCostCalculator {
     updateCostSummary() {
         // Calculate ingredient cost
         const ingredientCost = this.currentRecipe.ingredients.reduce((sum, ing) => sum + ing.cost, 0);
+        this.currentRecipe.ingredientCost = ingredientCost;
         document.getElementById('summaryIngredientCost').textContent = ingredientCost.toFixed(2);
         document.getElementById('ingredientCostTotal').textContent = ingredientCost.toFixed(2);
 
