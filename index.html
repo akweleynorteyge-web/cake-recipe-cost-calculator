@@ -15,6 +15,7 @@
 
         <nav class="tabs">
             <button class="tab-button active" data-tab="ingredients">Ingredients</button>
+            <button class="tab-button" data-tab="saved-ingredients">Saved Ingredients</button>
             <button class="tab-button" data-tab="recipe">Recipe</button>
             <button class="tab-button" data-tab="saved-recipes">Saved Recipes</button>
             <button class="tab-button" data-tab="packaging">Packaging</button>
@@ -73,11 +74,16 @@
                     <button type="submit" class="btn btn-primary">Add Ingredient</button>
                 </form>
             </div>
+        </div>
 
+        <!-- SAVED INGREDIENTS TAB -->
+        <div id="saved-ingredients" class="tab-content">
+            <h2>My Ingredients</h2>
+            <p style="color: #666; margin-bottom: 20px;">All ingredients you've added to your database</p>
+            
             <div class="list-section">
-                <h3>My Ingredients</h3>
                 <div id="ingredientsList" class="items-list">
-                    <p class="empty-message">No ingredients added yet. Add your first ingredient above!</p>
+                    <p class="empty-message">No ingredients added yet. Go to Ingredients tab to add your first ingredient!</p>
                 </div>
             </div>
         </div>
@@ -102,11 +108,12 @@
                 <h3>Add Ingredients to Recipe</h3>
                 <form id="recipeIngredientForm">
                     <div class="form-group">
-                        <label for="recipeIngredient">Select Ingredient or Add New *</label>
+                        <label for="recipeIngredient">Select Ingredient *</label>
                         <div class="ingredient-input-group">
-                            <input type="text" id="recipeIngredient" placeholder="Type to search or add new" list="ingredientsList-datalist">
+                            <input type="text" id="recipeIngredient" placeholder="Type to search your ingredients" list="ingredientsList-datalist">
                             <datalist id="ingredientsList-datalist"></datalist>
                         </div>
+                        <small style="color: #666; display: block; margin-top: 5px;">💡 Tip: You must add ingredients to your database first before using them in recipes!</small>
                     </div>
 
                     <div class="form-group">

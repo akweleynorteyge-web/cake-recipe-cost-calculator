@@ -72,6 +72,7 @@ class RecipeCostCalculator {
         this.renderPackaging();
         this.renderSavedRecipes();
         this.updateRecipeIngredientsList();
+        console.log('App initialized. Ingredients:', this.ingredients);
     }
 
     setupEventListeners() {
@@ -150,6 +151,9 @@ class RecipeCostCalculator {
 
         this.ingredients.push(ingredient);
         this.saveToStorage('ingredients', this.ingredients);
+        console.log('Ingredient added:', ingredient);
+        console.log('All ingredients:', this.ingredients);
+        
         this.renderIngredients();
         this.updateRecipeIngredientsList();
 
@@ -251,8 +255,9 @@ class RecipeCostCalculator {
     updateRecipeIngredientsList() {
         const datalist = document.getElementById('ingredientsList-datalist');
         datalist.innerHTML = this.ingredients.map(ing => 
-            `<option value="${ing.name}" data-id="${ing.id}"></option>`
+            `<option value="${ing.name}"></option>`
         ).join('');
+        console.log('Updated datalist with ingredients:', this.ingredients.map(i => i.name));
     }
 
     addToRecipe(e) {
@@ -262,16 +267,22 @@ class RecipeCostCalculator {
         const quantity = parseFloat(document.getElementById('recipeQuantity').value);
         const unit = document.getElementById('recipeUnit').value;
 
+        console.log('Looking for ingredient:', ingredientName);
+        console.log('Available ingredients:', this.ingredients.map(i => i.name));
+
         if (!ingredientName || quantity <= 0 || !unit) {
             alert('Please fill in all recipe fields');
             return;
         }
 
-        // Find or create ingredient
-        let ingredient = this.ingredients.find(ing => ing.name.toLowerCase() === ingredientName.toLowerCase());
+        // Find ingredient - case insensitive
+        let ingredient = this.ingredients.find(ing => 
+            ing.name.toLowerCase().trim() === ingredientName.toLowerCase().trim()
+        );
         
         if (!ingredient) {
-            alert('Ingredient not found. Please add it to your ingredients database first.');
+            console.log('Ingredient not found in database');
+            alert(`Ingredient "${ingredientName}" not found in your database.\n\nPlease go to the "Ingredients" tab and add it first!`);
             return;
         }
 
@@ -290,6 +301,7 @@ class RecipeCostCalculator {
 
         // Reset form
         document.getElementById('recipeIngredientForm').reset();
+        alert(`${ingredient.name} added to recipe!`);
     }
 
     calculateCost(ingredient, quantity, unit) {
