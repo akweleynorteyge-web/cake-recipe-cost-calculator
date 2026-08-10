@@ -105,6 +105,18 @@
             </div>
 
             <div class="form-section">
+                <h3>Scale Recipe</h3>
+                <p style="color: #666; margin-bottom: 15px;">Scale your recipe up or down (e.g., 2x for double, 0.5x for half)</p>
+                <div class="form-group">
+                    <label for="recipeScale">Recipe Scale (Multiply by) *</label>
+                    <input type="number" id="recipeScale" placeholder="1" step="0.5" min="0.1" value="1" required>
+                </div>
+                <div class="scale-info" id="scaleInfo" style="display: none;">
+                    <p>📊 <strong>Scaling:</strong> <span id="scaleMultiplier">1x</span></p>
+                </div>
+            </div>
+
+            <div class="form-section">
                 <h3>Add Ingredients to Recipe</h3>
                 <form id="recipeIngredientForm">
                     <div class="form-group">
@@ -148,8 +160,12 @@
             </div>
 
             <div class="cost-box">
-                <h3>Ingredient Cost Subtotal</h3>
-                <p class="cost-display">GH₵ <span id="ingredientCostTotal">0.00</span></p>
+                <h3>Base Ingredient Cost</h3>
+                <p class="cost-display">GH₵ <span id="ingredientCostBase">0.00</span></p>
+                <div id="scaledCostDisplay" style="display: none; margin-top: 15px; border-top: 2px solid var(--primary-color); padding-top: 15px;">
+                    <h3>Scaled Ingredient Cost (<span id="scaleLabel">1x</span>)</h3>
+                    <p class="cost-display" style="color: var(--success-color);">GH₵ <span id="ingredientCostScaled">0.00</span></p>
+                </div>
             </div>
 
             <div class="form-section" style="margin-top: 25px;">
@@ -272,7 +288,7 @@
 
             <div class="summary-results">
                 <div class="summary-item">
-                    <span>Total Ingredient Cost</span>
+                    <span>Total Ingredient Cost (Scaled)</span>
                     <span class="amount">GH₵ <span id="summaryIngredientCost">0.00</span></span>
                 </div>
                 <div class="summary-item">

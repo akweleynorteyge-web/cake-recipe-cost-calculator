@@ -13,7 +13,9 @@ class RecipeCostCalculator {
             name: '',
             servings: '',
             ingredients: [],
-            ingredientCost: 0
+            ingredientCost: 0,
+            baseIngredientCost: 0,
+            scale: 1
         };
         this.init();
     }
@@ -93,6 +95,10 @@ class RecipeCostCalculator {
             this.currentRecipe.servings = e.target.value;
         });
 
+        // Recipe scale
+        document.getElementById('recipeScale').addEventListener('change', (e) => this.updateRecipeScale(e));
+        document.getElementById('recipeScale').addEventListener('input', (e) => this.updateRecipeScale(e));
+
         // Decorations tab
         document.getElementById('decorationForm').addEventListener('submit', (e) => this.addDecoration(e));
 
@@ -125,6 +131,38 @@ class RecipeCostCalculator {
 
         // Add active class to clicked button
         event.target.classList.add('active');
+    }
+
+    // ==========================================
+    // RECIPE SCALING
+    // ==========================================
+
+    updateRecipeScale(e) {
+        const scale = parseFloat(e.target.value) || 1;
+        
+        if (scale <= 0) {
+            alert('Scale must be greater than 0');
+            document.getElementById('recipeScale').value = 1;
+            return;
+        }
+
+        this.currentRecipe.scale = scale;
+        
+        // Update display
+        const scaleText = scale === 1 ? '1x' : `${scale}x`;
+        document.getElementById('scaleMultiplier').textContent = scaleText;
+        document.getElementById('scaleLabel').textContent = scaleText;
+        
+        // Show/hide scaled cost display
+        if (scale !== 1) {
+            document.getElementById('scaleInfo').style.display = 'block';
+            document.getElementById('scaledCostDisplay').style.display = 'block';
+        } else {
+            document.getElementById('scaleInfo').style.display = 'none';
+            document.getElementById('scaledCostDisplay').style.display = 'none';
+        }
+        
+        this.updateCostSummary();
     }
 
     // ==========================================
@@ -374,7 +412,8 @@ class RecipeCostCalculator {
             name: this.currentRecipe.name,
             servings: this.currentRecipe.servings,
             ingredients: JSON.parse(JSON.stringify(this.currentRecipe.ingredients)),
-            ingredientCost: this.currentRecipe.ingredients.reduce((sum, ing) => sum + ing.cost, 0),
+            ingredientCost: this.currentRecipe.baseIngredientCost,
+            scale: this.currentRecipe.scale,
             savedAt: new Date().toLocaleString()
         };
 
@@ -391,12 +430,17 @@ class RecipeCostCalculator {
                 name: '',
                 servings: '',
                 ingredients: [],
-                ingredientCost: 0
+                ingredientCost: 0,
+                baseIngredientCost: 0,
+                scale: 1
             };
             document.getElementById('recipeName').value = '';
             document.getElementById('recipeServings').value = '';
+            document.getElementById('recipeScale').value = '1';
             this.renderRecipeIngredients();
             this.updateCostSummary();
+            document.getElementById('scaleInfo').style.display = 'none';
+            document.getElementById('scaledCostDisplay').style.display = 'none';
         }
     }
 
@@ -409,13 +453,22 @@ class RecipeCostCalculator {
             name: recipe.name,
             servings: recipe.servings,
             ingredients: JSON.parse(JSON.stringify(recipe.ingredients)),
-            ingredientCost: recipe.ingredientCost
+            ingredientCost: recipe.ingredientCost,
+            baseIngredientCost: recipe.ingredientCost,
+            scale: recipe.scale || 1
         };
 
         document.getElementById('recipeName').value = recipe.name;
         document.getElementById('recipeServings').value = recipe.servings;
+        document.getElementById('recipeScale').value = recipe.scale || 1;
         this.renderRecipeIngredients();
         this.updateCostSummary();
+        
+        // Update scale display
+        if (recipe.scale !== 1) {
+            document.getElementById('scaleInfo').style.display = 'block';
+            document.getElementById('scaledCostDisplay').style.display = 'block';
+        }
 
         // Switch to recipe tab
         this.switchTab('recipe');
@@ -438,14 +491,17 @@ class RecipeCostCalculator {
             return;
         }
 
-        list.innerHTML = this.savedRecipes.map(recipe => `
+        list.innerHTML = this.savedRecipes.map(recipe => {
+            const scaleText = recipe.scale && recipe.scale !== 1 ? `(${recipe.scale}x)` : '';
+            return `
             <div class="item saved-recipe-card">
                 <div class="item-info">
-                    <div class="item-name">🎂 ${recipe.name}</div>
+                    <div class="item-name">🎂 ${recipe.name} ${scaleText}</div>
                     <div class="item-details">
                         <strong>Servings/Size:</strong> ${recipe.servings || 'Not specified'}<br>
                         <strong>Ingredients:</strong> ${recipe.ingredients.length} items<br>
-                        <strong>Ingredient Cost:</strong> GH₵${recipe.ingredientCost.toFixed(2)}<br>
+                        <strong>Base Ingredient Cost:</strong> GH₵${recipe.ingredientCost.toFixed(2)}<br>
+                        ${recipe.scale && recipe.scale !== 1 ? `<strong>Scale:</strong> ${recipe.scale}x (Cost: GH₵${(recipe.ingredientCost * recipe.scale).toFixed(2)})<br>` : ''}
                         <strong>Saved:</strong> ${recipe.savedAt}
                     </div>
                 </div>
@@ -454,7 +510,8 @@ class RecipeCostCalculator {
                     <button class="btn btn-danger btn-small" onclick="calculator.deleteRecipe(${recipe.id})">Delete</button>
                 </div>
             </div>
-        `).join('');
+        `;
+        }).join('');
     }
 
     // ==========================================
@@ -576,11 +633,19 @@ class RecipeCostCalculator {
     // ==========================================
 
     updateCostSummary() {
-        // Calculate ingredient cost
-        const ingredientCost = this.currentRecipe.ingredients.reduce((sum, ing) => sum + ing.cost, 0);
-        this.currentRecipe.ingredientCost = ingredientCost;
-        document.getElementById('summaryIngredientCost').textContent = ingredientCost.toFixed(2);
-        document.getElementById('ingredientCostTotal').textContent = ingredientCost.toFixed(2);
+        // Calculate base ingredient cost (before scaling)
+        const baseIngredientCost = this.currentRecipe.ingredients.reduce((sum, ing) => sum + ing.cost, 0);
+        this.currentRecipe.baseIngredientCost = baseIngredientCost;
+        
+        // Calculate scaled ingredient cost
+        const scale = this.currentRecipe.scale || 1;
+        const scaledIngredientCost = baseIngredientCost * scale;
+        this.currentRecipe.ingredientCost = scaledIngredientCost;
+        
+        // Display both costs
+        document.getElementById('ingredientCostBase').textContent = baseIngredientCost.toFixed(2);
+        document.getElementById('ingredientCostScaled').textContent = scaledIngredientCost.toFixed(2);
+        document.getElementById('summaryIngredientCost').textContent = scaledIngredientCost.toFixed(2);
 
         // Get costs from form
         const packagingCost = parseFloat(document.getElementById('summaryPackagingCost').value) || 0;
@@ -602,8 +667,8 @@ class RecipeCostCalculator {
         document.getElementById('summaryUtilitiesDisplay').textContent = utilities.toFixed(2);
         document.getElementById('summaryTransportDisplay').textContent = transport.toFixed(2);
 
-        // Calculate total production cost
-        const totalProduction = ingredientCost + packagingCost + electricity + gas + water + labour + transport + decorationCost;
+        // Calculate total production cost (using scaled ingredient cost)
+        const totalProduction = scaledIngredientCost + packagingCost + electricity + gas + water + labour + transport + decorationCost;
         document.getElementById('summaryTotalProduction').textContent = totalProduction.toFixed(2);
 
         // Calculate profit and final price
