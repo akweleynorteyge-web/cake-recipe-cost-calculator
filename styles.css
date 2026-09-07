@@ -8,6 +8,9 @@
     --primary-color: #d4a574;
     --secondary-color: #8b4513;
     --accent-color: #ff69b4;
+    --pink-color: #ff1493;
+    --light-pink: #ffe0ec;
+    --pale-pink: #fff0f5;
     --success-color: #4caf50;
     --danger-color: #f44336;
     --warning-color: #ff9800;
@@ -35,7 +38,7 @@ body {
 header {
     text-align: center;
     padding: 30px 20px;
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    background: linear-gradient(135deg, #ff69b4 0%, #ff1493 100%);
     color: var(--white);
     border-radius: 10px;
     margin-bottom: 30px;
@@ -74,12 +77,12 @@ header h1 {
 }
 
 .tab-button:hover {
-    color: var(--secondary-color);
+    color: var(--pink-color);
 }
 
 .tab-button.active {
-    color: var(--primary-color);
-    border-bottom-color: var(--primary-color);
+    color: var(--pink-color);
+    border-bottom-color: var(--pink-color);
 }
 
 /* TAB CONTENT */
@@ -104,13 +107,13 @@ header h1 {
 }
 
 h2 {
-    color: var(--secondary-color);
+    color: var(--pink-color);
     margin-bottom: 25px;
     font-size: 1.8em;
 }
 
 h3 {
-    color: var(--secondary-color);
+    color: var(--pink-color);
     margin-bottom: 15px;
     font-size: 1.3em;
 }
@@ -122,6 +125,7 @@ h3 {
     border-radius: 10px;
     margin-bottom: 25px;
     box-shadow: var(--shadow);
+    border-top: 4px solid var(--pink-color);
 }
 
 .form-group {
@@ -154,8 +158,8 @@ input[type="text"]:focus,
 input[type="number"]:focus,
 select:focus {
     outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.1);
+    border-color: var(--pink-color);
+    box-shadow: 0 0 0 3px rgba(255, 20, 147, 0.1);
 }
 
 /* BUTTONS */
@@ -171,14 +175,14 @@ select:focus {
 }
 
 .btn-primary {
-    background-color: var(--primary-color);
+    background-color: var(--pink-color);
     color: var(--white);
 }
 
 .btn-primary:hover {
-    background-color: var(--secondary-color);
+    background-color: #ff1493;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(139, 69, 19, 0.3);
+    box-shadow: 0 4px 12px rgba(255, 20, 147, 0.3);
 }
 
 .btn-secondary {
@@ -241,6 +245,7 @@ select:focus {
     border-radius: 10px;
     margin-bottom: 25px;
     box-shadow: var(--shadow);
+    border-top: 4px solid var(--pink-color);
 }
 
 .items-list {
@@ -250,10 +255,10 @@ select:focus {
 }
 
 .item {
-    background: var(--light-bg);
+    background: var(--pale-pink);
     padding: 15px;
     border-radius: 6px;
-    border-left: 4px solid var(--primary-color);
+    border-left: 4px solid var(--pink-color);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -268,7 +273,7 @@ select:focus {
 
 .item-name {
     font-weight: 600;
-    color: var(--secondary-color);
+    color: var(--pink-color);
     margin-bottom: 5px;
 }
 
@@ -288,6 +293,16 @@ select:focus {
     border-left-color: var(--accent-color);
 }
 
+.order-recipe-item {
+    background: linear-gradient(135deg, var(--pale-pink) 0%, #ffe6f0 100%);
+    border-left-color: var(--pink-color);
+}
+
+.decoration-item {
+    background: linear-gradient(135deg, var(--pale-pink) 0%, var(--light-pink) 100%);
+    border-left-color: var(--pink-color);
+}
+
 .empty-message {
     text-align: center;
     color: var(--text-light);
@@ -297,18 +312,18 @@ select:focus {
 
 /* COST DISPLAYS */
 .cost-box {
-    background: linear-gradient(135deg, #fff9e6 0%, #ffe6f0 100%);
+    background: linear-gradient(135deg, var(--pale-pink) 0%, var(--light-pink) 100%);
     padding: 25px;
     border-radius: 10px;
     text-align: center;
     margin-top: 25px;
-    border: 2px solid var(--primary-color);
+    border: 2px solid var(--pink-color);
 }
 
 .cost-display {
     font-size: 2.5em;
     font-weight: bold;
-    color: var(--secondary-color);
+    color: var(--pink-color);
     margin: 10px 0;
 }
 
@@ -324,6 +339,7 @@ select:focus {
     padding: 25px;
     border-radius: 10px;
     box-shadow: var(--shadow);
+    border-top: 4px solid var(--pink-color);
 }
 
 .packaging-items {
@@ -337,7 +353,7 @@ select:focus {
     align-items: center;
     gap: 10px;
     padding: 10px;
-    background: var(--light-bg);
+    background: var(--pale-pink);
     border-radius: 6px;
 }
 
@@ -346,6 +362,7 @@ select:focus {
     flex: 1;
     font-weight: 500;
     font-size: 0.95em;
+    color: var(--text-dark);
 }
 
 .packaging-item input {
@@ -365,12 +382,62 @@ select:focus {
     flex: 1;
 }
 
+/* DECORATION SELECTION FOR ORDERS */
+.decorations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.decoration-checkbox {
+    background: var(--pale-pink);
+    padding: 15px;
+    border-radius: 8px;
+    border: 2px solid var(--light-pink);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.decoration-checkbox:hover {
+    background: var(--light-pink);
+    border-color: var(--pink-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 20, 147, 0.2);
+}
+
+.decoration-checkbox input[type="checkbox"] {
+    margin-right: 10px;
+    cursor: pointer;
+    accent-color: var(--pink-color);
+    width: 18px;
+    height: 18px;
+}
+
+.decoration-checkbox label {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--text-dark);
+}
+
+.decoration-checkbox input[type="checkbox"]:checked + label {
+    color: var(--pink-color);
+}
+
+.decoration-checkbox input[type="checkbox"]:checked {
+    accent-color: var(--pink-color);
+}
+
 /* SUMMARY RESULTS */
 .summary-results {
     background: var(--white);
     padding: 30px;
     border-radius: 10px;
     box-shadow: var(--shadow);
+    border-top: 4px solid var(--pink-color);
 }
 
 .summary-item {
@@ -393,7 +460,7 @@ select:focus {
     border-radius: 6px;
     font-weight: 700;
     font-size: 1.2em;
-    color: var(--secondary-color);
+    color: var(--pink-color);
 }
 
 .summary-item.profit {
@@ -407,7 +474,7 @@ select:focus {
 }
 
 .summary-item.final-price {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    background: linear-gradient(135deg, var(--pink-color) 0%, #ff1493 100%);
     color: var(--white);
     padding: 25px;
     margin-top: 15px;
@@ -418,20 +485,20 @@ select:focus {
 
 .summary-divider {
     height: 2px;
-    background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+    background: linear-gradient(90deg, transparent, var(--pink-color), transparent);
     margin: 20px 0;
 }
 
 .amount {
     font-weight: 700;
-    color: var(--primary-color);
+    color: var(--pink-color);
     font-size: 1.1em;
 }
 
 /* SAVED RECIPE ITEM */
 .saved-recipe-card {
-    background: linear-gradient(135deg, #fff9e6 0%, #ffe6f0 100%);
-    border-left: 4px solid var(--success-color);
+    background: linear-gradient(135deg, var(--pale-pink) 0%, var(--light-pink) 100%);
+    border-left: 4px solid var(--pink-color);
 }
 
 .saved-recipe-card .item-details {
@@ -448,7 +515,7 @@ footer {
     padding: 20px;
     color: var(--text-light);
     margin-top: 50px;
-    border-top: 1px solid var(--border-color);
+    border-top: 2px solid var(--pink-color);
 }
 
 /* RESPONSIVE */
@@ -486,6 +553,10 @@ footer {
     }
 
     .packaging-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .decorations-grid {
         grid-template-columns: 1fr;
     }
 
@@ -550,6 +621,10 @@ footer {
     .packaging-item input {
         width: 80px;
         font-size: 0.85em;
+    }
+
+    .decorations-grid {
+        grid-template-columns: 1fr;
     }
 
     .cost-display {
