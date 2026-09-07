@@ -23,7 +23,9 @@ class RecipeCostCalculator {
             name: '',
             description: '',
             recipes: [],
+            decorations: [],
             totalIngredientCost: 0,
+            totalDecorationCost: 0,
             createdAt: null
         };
         this.init();
@@ -84,6 +86,7 @@ class RecipeCostCalculator {
         this.renderSavedRecipes();
         this.updateRecipeIngredientsList();
         this.updateMultiRecipeDropdown();
+        this.renderOrderDecorations();
         console.log('App initialized. Ingredients:', this.ingredients);
     }
 
@@ -613,6 +616,103 @@ class RecipeCostCalculator {
         this.updateMultiRecipeOrderSummary();
     }
 
+    // ==========================================
+    // DECORATIONS FOR MULTI-RECIPE ORDER
+    // ==========================================
+
+    renderOrderDecorations() {
+        const container = document.getElementById('orderDecorationsList');
+        
+        if (this.decorations.length === 0) {
+            container.innerHTML = '<p class="empty-message">No decorations available. Go to Decorations tab to add decorations first!</p>';
+            return;
+        }
+
+        container.innerHTML = this.decorations.map(dec => `
+            <div class="decoration-checkbox">
+                <input type="checkbox" id="dec-${dec.id}" value="${dec.id}" 
+                       class="decoration-select" onchange="calculator.updateOrderDecorations()">
+                <label for="dec-${dec.id}">
+                    <strong>${dec.name}</strong> - GH₵${dec.price.toFixed(2)}
+                </label>
+            </div>
+        `).join('');
+    }
+
+    updateOrderDecorations() {
+        // Get all checked decorations
+        const checkedDecorations = Array.from(document.querySelectorAll('.decoration-select:checked'));
+        
+        this.currentOrder.decorations = checkedDecorations.map(checkbox => {
+            const decorationId = parseInt(checkbox.value);
+            const decoration = this.decorations.find(d => d.id === decorationId);
+            return {
+                id: decoration.id,
+                name: decoration.name,
+                price: decoration.price
+            };
+        });
+
+        this.renderSelectedDecorations();
+        this.updateMultiRecipeOrderSummary();
+    }
+
+    renderSelectedDecorations() {
+        const list = document.getElementById('selectedDecorationsList');
+        
+        if (this.currentOrder.decorations.length === 0) {
+            list.innerHTML = '<p class="empty-message">No decorations selected yet.</p>';
+            return;
+        }
+
+        const totalDecorationCost = this.currentOrder.decorations.reduce((sum, dec) => sum + dec.price, 0);
+        this.currentOrder.totalDecorationCost = totalDecorationCost;
+
+        list.innerHTML = this.currentOrder.decorations.map((dec, index) => `
+            <div class="item decoration-item">
+                <div class="item-info">
+                    <div class="item-name">${dec.name}</div>
+                    <div class="item-details">Price: GH₵${dec.price.toFixed(2)}</div>
+                </div>
+                <div class="item-actions">
+                    <button class="btn btn-danger btn-small" onclick="calculator.removeOrderDecoration(${index})">Remove</button>
+                </div>
+            </div>
+        `).join('');
+
+        // Add total decoration cost at the end
+        if (this.currentOrder.decorations.length > 0) {
+            list.innerHTML += `
+                <div class="item" style="background: #e8f5e9; margin-top: 10px;">
+                    <div class="item-info">
+                        <div class="item-name" style="color: #2e7d32; font-weight: bold;">Total Decoration Cost</div>
+                        <div class="item-details" style="color: #2e7d32;">GH₵${totalDecorationCost.toFixed(2)}</div>
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    removeOrderDecoration(index) {
+        this.currentOrder.decorations.splice(index, 1);
+        
+        // Uncheck the corresponding checkbox
+        const decoration = this.currentOrder.decorations[index];
+        if (decoration) {
+            const checkbox = document.getElementById(`dec-${decoration.id}`);
+            if (checkbox) {
+                checkbox.checked = false;
+            }
+        }
+        
+        this.renderSelectedDecorations();
+        this.updateMultiRecipeOrderSummary();
+    }
+
+    // ==========================================
+    // MULTI-RECIPE ORDER SUMMARY
+    // ==========================================
+
     updateMultiRecipeOrderSummary() {
         // Calculate total ingredient cost from all recipes
         const totalIngredientCost = this.currentOrder.recipes.reduce((sum, recipe) => {
@@ -620,6 +720,10 @@ class RecipeCostCalculator {
         }, 0);
 
         this.currentOrder.totalIngredientCost = totalIngredientCost;
+
+        // Calculate total decoration cost
+        const totalDecorationCost = this.currentOrder.decorations.reduce((sum, dec) => sum + dec.price, 0);
+        this.currentOrder.totalDecorationCost = totalDecorationCost;
 
         // Display ingredient cost
         document.getElementById('orderTotalIngredientCost').textContent = totalIngredientCost.toFixed(2);
@@ -632,21 +736,20 @@ class RecipeCostCalculator {
         const water = parseFloat(document.getElementById('orderWater').value) || 0;
         const labour = parseFloat(document.getElementById('orderLabour').value) || 0;
         const transport = parseFloat(document.getElementById('orderTransport').value) || 0;
-        const decorationCost = parseFloat(document.getElementById('orderDecorationCost').value) || 0;
         const profitPercentage = parseFloat(document.getElementById('orderProfitPercentage').value) || 0;
 
         // Calculate utilities
         const utilities = electricity + gas + water;
 
         // Update display
-        document.getElementById('orderSummaryDecoration').textContent = decorationCost.toFixed(2);
+        document.getElementById('orderSummaryDecoration').textContent = totalDecorationCost.toFixed(2);
         document.getElementById('orderSummaryPackaging').textContent = packagingCost.toFixed(2);
         document.getElementById('orderSummaryLabour').textContent = labour.toFixed(2);
         document.getElementById('orderSummaryUtilities').textContent = utilities.toFixed(2);
         document.getElementById('orderSummaryTransport').textContent = transport.toFixed(2);
 
-        // Calculate total production cost
-        const totalProduction = totalIngredientCost + packagingCost + electricity + gas + water + labour + transport + decorationCost;
+        // Calculate total production cost (ingredients + decorations + packaging + utilities + labour + transport)
+        const totalProduction = totalIngredientCost + totalDecorationCost + packagingCost + electricity + gas + water + labour + transport;
         document.getElementById('orderSummaryTotalProduction').textContent = totalProduction.toFixed(2);
 
         // Calculate profit and final price
@@ -673,14 +776,15 @@ class RecipeCostCalculator {
             name: document.getElementById('orderName').value,
             description: document.getElementById('orderDescription').value,
             recipes: JSON.parse(JSON.stringify(this.currentOrder.recipes)),
+            decorations: JSON.parse(JSON.stringify(this.currentOrder.decorations)),
             totalIngredientCost: this.currentOrder.totalIngredientCost,
+            totalDecorationCost: this.currentOrder.totalDecorationCost,
             packagingCost: parseFloat(document.getElementById('orderPackagingCost').value) || 0,
             electricity: parseFloat(document.getElementById('orderElectricity').value) || 0,
             gas: parseFloat(document.getElementById('orderGas').value) || 0,
             water: parseFloat(document.getElementById('orderWater').value) || 0,
             labour: parseFloat(document.getElementById('orderLabour').value) || 0,
             transport: parseFloat(document.getElementById('orderTransport').value) || 0,
-            decorationCost: parseFloat(document.getElementById('orderDecorationCost').value) || 0,
             profitPercentage: parseFloat(document.getElementById('orderProfitPercentage').value) || 0,
             finalPrice: parseFloat(document.getElementById('orderSummaryFinalPrice').textContent),
             savedAt: new Date().toLocaleString()
@@ -701,12 +805,19 @@ class RecipeCostCalculator {
                 name: '',
                 description: '',
                 recipes: [],
+                decorations: [],
                 totalIngredientCost: 0,
+                totalDecorationCost: 0,
                 createdAt: null
             };
             document.getElementById('orderName').value = '';
             document.getElementById('orderDescription').value = '';
             document.getElementById('multiRecipeSelect').value = '';
+            
+            // Uncheck all decorations
+            document.querySelectorAll('.decoration-select').forEach(checkbox => {
+                checkbox.checked = false;
+            });
             
             // Reset cost inputs
             document.getElementById('orderPackagingCost').value = '0';
@@ -715,10 +826,10 @@ class RecipeCostCalculator {
             document.getElementById('orderWater').value = '0';
             document.getElementById('orderLabour').value = '0';
             document.getElementById('orderTransport').value = '0';
-            document.getElementById('orderDecorationCost').value = '0';
             document.getElementById('orderProfitPercentage').value = '50';
             
             this.renderOrderRecipes();
+            this.renderSelectedDecorations();
             this.updateMultiRecipeOrderSummary();
         }
     }
@@ -744,6 +855,7 @@ class RecipeCostCalculator {
         this.decorations.push(decoration);
         this.saveToStorage('decorations', this.decorations);
         this.renderDecorations();
+        this.renderOrderDecorations();
 
         document.getElementById('decorationForm').reset();
         alert('Decoration added successfully!');
@@ -754,6 +866,7 @@ class RecipeCostCalculator {
             this.decorations = this.decorations.filter(dec => dec.id !== id);
             this.saveToStorage('decorations', this.decorations);
             this.renderDecorations();
+            this.renderOrderDecorations();
         }
     }
 
@@ -788,6 +901,7 @@ class RecipeCostCalculator {
             decoration.price = parseFloat(newPrice);
             this.saveToStorage('decorations', this.decorations);
             this.renderDecorations();
+            this.renderOrderDecorations();
         }
     }
 
