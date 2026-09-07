@@ -19,6 +19,7 @@
             <button class="tab-button" data-tab="recipe">Recipe</button>
             <button class="tab-button" data-tab="saved-recipes">Saved Recipes</button>
             <button class="tab-button" data-tab="multi-recipe">Multi-Recipe Order</button>
+            <button class="tab-button" data-tab="saved-orders">Saved Orders</button>
             <button class="tab-button" data-tab="packaging">Packaging</button>
             <button class="tab-button" data-tab="decorations">Decorations</button>
             <button class="tab-button" data-tab="summary">Cost Summary</button>
@@ -235,8 +236,11 @@
                 <h3>Select Decorations for Order</h3>
                 <p style="color: #666; margin-bottom: 15px;">Choose decorations from your database to add to this order</p>
                 
-                <div id="orderDecorationsList" class="decorations-grid">
-                    <p class="empty-message">No decorations available. Go to Decorations tab to add decorations first!</p>
+                <div class="form-group">
+                    <label for="orderDecorationSelect">Select Decoration (Optional) *</label>
+                    <select id="orderDecorationSelect" onchange="calculator.addDecorationToOrder()">
+                        <option value="">-- Choose a decoration --</option>
+                    </select>
                 </div>
 
                 <div class="list-section" style="margin-top: 20px;">
@@ -331,6 +335,18 @@
             <div class="form-section" style="margin-top: 25px;">
                 <button type="button" class="btn btn-success btn-large" onclick="calculator.saveMultiRecipeOrder()">💾 Save This Order</button>
                 <button type="button" class="btn btn-secondary btn-large" onclick="calculator.clearMultiRecipeOrder()">Clear Order</button>
+            </div>
+        </div>
+
+        <!-- SAVED ORDERS TAB -->
+        <div id="saved-orders" class="tab-content">
+            <h2>Saved Cost Calculations</h2>
+            <p style="color: #666; margin-bottom: 20px;">View all your saved cake order cost calculations</p>
+            
+            <div class="list-section">
+                <div id="savedOrdersList" class="items-list">
+                    <p class="empty-message">No saved orders yet. Create and save an order first!</p>
+                </div>
             </div>
         </div>
 
