@@ -18,6 +18,7 @@
             <button class="tab-button" data-tab="saved-ingredients">Saved Ingredients</button>
             <button class="tab-button" data-tab="recipe">Recipe</button>
             <button class="tab-button" data-tab="saved-recipes">Saved Recipes</button>
+            <button class="tab-button" data-tab="multi-recipe">Multi-Recipe Order</button>
             <button class="tab-button" data-tab="packaging">Packaging</button>
             <button class="tab-button" data-tab="decorations">Decorations</button>
             <button class="tab-button" data-tab="summary">Cost Summary</button>
@@ -183,6 +184,142 @@
                 <div id="savedRecipesList" class="items-list">
                     <p class="empty-message">No recipes saved yet. Create and save a recipe first!</p>
                 </div>
+            </div>
+        </div>
+
+        <!-- MULTI-RECIPE ORDER TAB -->
+        <div id="multi-recipe" class="tab-content">
+            <h2>Multi-Recipe Order</h2>
+            <p style="color: #666; margin-bottom: 20px;">Combine multiple recipes into one cake order</p>
+
+            <div class="form-section">
+                <h3>Order Details</h3>
+                <div class="form-group">
+                    <label for="orderName">Order Name *</label>
+                    <input type="text" id="orderName" placeholder="e.g., Wedding Cake Order - Sarah & John" required>
+                </div>
+                <div class="form-group">
+                    <label for="orderDescription">Order Description (Optional)</label>
+                    <input type="text" id="orderDescription" placeholder="e.g., 3-tier wedding cake with vanilla, chocolate, and carrot layers">
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Add Recipes to Order</h3>
+                <p style="color: #666; margin-bottom: 15px;">Select from your saved recipes and add them to this order</p>
+                
+                <div class="form-group">
+                    <label for="multiRecipeSelect">Select a Recipe *</label>
+                    <select id="multiRecipeSelect">
+                        <option value="">-- Choose a saved recipe --</option>
+                    </select>
+                </div>
+
+                <button type="button" class="btn btn-primary" onclick="calculator.addRecipeToOrder()">+ Add Recipe to Order</button>
+            </div>
+
+            <div class="list-section">
+                <h3>Recipes in This Order</h3>
+                <div id="orderRecipesList" class="items-list">
+                    <p class="empty-message">No recipes added to order yet. Select a recipe and click "Add Recipe to Order"!</p>
+                </div>
+            </div>
+
+            <div class="cost-box" style="margin-bottom: 25px;">
+                <h3>Combined Ingredient Cost</h3>
+                <p class="cost-display">GH₵ <span id="orderTotalIngredientCost">0.00</span></p>
+                <p style="color: #666; margin-top: 10px; font-size: 0.95em;">Total cost of all recipes in this order</p>
+            </div>
+
+            <div class="form-section">
+                <h3>Additional Order Costs</h3>
+                <form id="orderCostsForm">
+                    <div class="form-group">
+                        <label for="orderPackagingCost">Packaging Cost (GH₵)</label>
+                        <input type="number" id="orderPackagingCost" placeholder="0.00" step="0.01" min="0" value="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="orderElectricity">Electricity (GH₵)</label>
+                        <input type="number" id="orderElectricity" placeholder="0.00" step="0.01" min="0" value="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="orderGas">Gas (GH₵)</label>
+                        <input type="number" id="orderGas" placeholder="0.00" step="0.01" min="0" value="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="orderWater">Water (GH₵)</label>
+                        <input type="number" id="orderWater" placeholder="0.00" step="0.01" min="0" value="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="orderLabour">Labour (GH₵)</label>
+                        <input type="number" id="orderLabour" placeholder="0.00" step="0.01" min="0" value="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="orderTransport">Transport (GH₵)</label>
+                        <input type="number" id="orderTransport" placeholder="0.00" step="0.01" min="0" value="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="orderDecorationCost">Decorations Cost (GH₵)</label>
+                        <input type="number" id="orderDecorationCost" placeholder="0.00" step="0.01" min="0" value="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="orderProfitPercentage">Profit Percentage (%) *</label>
+                        <input type="number" id="orderProfitPercentage" placeholder="50" step="0.1" min="0" value="50" required>
+                    </div>
+                </form>
+            </div>
+
+            <div class="summary-results">
+                <div class="summary-item">
+                    <span>Total Ingredient Cost (All Recipes)</span>
+                    <span class="amount">GH₵ <span id="orderSummaryIngredient">0.00</span></span>
+                </div>
+                <div class="summary-item">
+                    <span>Decoration Cost</span>
+                    <span class="amount">GH₵ <span id="orderSummaryDecoration">0.00</span></span>
+                </div>
+                <div class="summary-item">
+                    <span>Packaging Cost</span>
+                    <span class="amount">GH₵ <span id="orderSummaryPackaging">0.00</span></span>
+                </div>
+                <div class="summary-item">
+                    <span>Labour</span>
+                    <span class="amount">GH₵ <span id="orderSummaryLabour">0.00</span></span>
+                </div>
+                <div class="summary-item">
+                    <span>Utilities (Electricity + Gas + Water)</span>
+                    <span class="amount">GH₵ <span id="orderSummaryUtilities">0.00</span></span>
+                </div>
+                <div class="summary-item">
+                    <span>Transport</span>
+                    <span class="amount">GH₵ <span id="orderSummaryTransport">0.00</span></span>
+                </div>
+                <div class="summary-divider"></div>
+                <div class="summary-item total">
+                    <span>Total Production Cost</span>
+                    <span class="amount">GH₵ <span id="orderSummaryTotalProduction">0.00</span></span>
+                </div>
+                <div class="summary-item profit">
+                    <span>Profit</span>
+                    <span class="amount">GH₵ <span id="orderSummaryProfit">0.00</span></span>
+                </div>
+                <div class="summary-divider"></div>
+                <div class="summary-item final-price">
+                    <span>Final Selling Price (Total Order)</span>
+                    <span class="amount">GH₵ <span id="orderSummaryFinalPrice">0.00</span></span>
+                </div>
+            </div>
+
+            <div class="form-section" style="margin-top: 25px;">
+                <button type="button" class="btn btn-success btn-large" onclick="calculator.saveMultiRecipeOrder()">💾 Save This Order</button>
+                <button type="button" class="btn btn-secondary btn-large" onclick="calculator.clearMultiRecipeOrder()">Clear Order</button>
             </div>
         </div>
 
