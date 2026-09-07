@@ -232,6 +232,22 @@
             </div>
 
             <div class="form-section">
+                <h3>Select Decorations for Order</h3>
+                <p style="color: #666; margin-bottom: 15px;">Choose decorations from your database to add to this order</p>
+                
+                <div id="orderDecorationsList" class="decorations-grid">
+                    <p class="empty-message">No decorations available. Go to Decorations tab to add decorations first!</p>
+                </div>
+
+                <div class="list-section" style="margin-top: 20px;">
+                    <h3>Selected Decorations</h3>
+                    <div id="selectedDecorationsList" class="items-list">
+                        <p class="empty-message">No decorations selected yet.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
                 <h3>Additional Order Costs</h3>
                 <form id="orderCostsForm">
                     <div class="form-group">
@@ -262,11 +278,6 @@
                     <div class="form-group">
                         <label for="orderTransport">Transport (GH₵)</label>
                         <input type="number" id="orderTransport" placeholder="0.00" step="0.01" min="0" value="0">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="orderDecorationCost">Decorations Cost (GH₵)</label>
-                        <input type="number" id="orderDecorationCost" placeholder="0.00" step="0.01" min="0" value="0">
                     </div>
 
                     <div class="form-group">
