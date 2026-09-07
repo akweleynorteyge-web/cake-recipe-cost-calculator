@@ -6,6 +6,7 @@ class RecipeCostCalculator {
     constructor() {
         this.ingredients = this.loadFromStorage('ingredients') || [];
         this.savedRecipes = this.loadFromStorage('savedRecipes') || [];
+        this.savedOrders = this.loadFromStorage('savedOrders') || [];
         this.decorations = this.loadFromStorage('decorations') || [];
         this.packaging = this.loadFromStorage('packaging') || this.initializePackaging();
         this.currentRecipe = {
@@ -16,6 +17,14 @@ class RecipeCostCalculator {
             ingredientCost: 0,
             baseIngredientCost: 0,
             scale: 1
+        };
+        this.currentOrder = {
+            id: null,
+            name: '',
+            description: '',
+            recipes: [],
+            totalIngredientCost: 0,
+            createdAt: null
         };
         this.init();
     }
@@ -74,6 +83,7 @@ class RecipeCostCalculator {
         this.renderPackaging();
         this.renderSavedRecipes();
         this.updateRecipeIngredientsList();
+        this.updateMultiRecipeDropdown();
         console.log('App initialized. Ingredients:', this.ingredients);
     }
 
@@ -105,6 +115,11 @@ class RecipeCostCalculator {
         // Production costs form
         document.querySelectorAll('#productionCostsForm input').forEach(input => {
             input.addEventListener('change', () => this.updateCostSummary());
+        });
+
+        // Multi-recipe order costs form
+        document.querySelectorAll('#orderCostsForm input').forEach(input => {
+            input.addEventListener('change', () => this.updateMultiRecipeOrderSummary());
         });
 
         // Packaging prices
@@ -420,6 +435,7 @@ class RecipeCostCalculator {
         this.savedRecipes.push(recipeToSave);
         this.saveToStorage('savedRecipes', this.savedRecipes);
         this.renderSavedRecipes();
+        this.updateMultiRecipeDropdown();
         alert(`Recipe "${recipeToSave.name}" saved successfully!`);
     }
 
@@ -480,6 +496,7 @@ class RecipeCostCalculator {
             this.savedRecipes = this.savedRecipes.filter(r => r.id !== recipeId);
             this.saveToStorage('savedRecipes', this.savedRecipes);
             this.renderSavedRecipes();
+            this.updateMultiRecipeDropdown();
         }
     }
 
@@ -512,6 +529,198 @@ class RecipeCostCalculator {
             </div>
         `;
         }).join('');
+    }
+
+    // ==========================================
+    // MULTI-RECIPE ORDER MANAGEMENT
+    // ==========================================
+
+    updateMultiRecipeDropdown() {
+        const dropdown = document.getElementById('multiRecipeSelect');
+        dropdown.innerHTML = '<option value="">-- Choose a saved recipe --</option>';
+        
+        if (this.savedRecipes.length > 0) {
+            dropdown.innerHTML += this.savedRecipes.map(recipe => `
+                <option value="${recipe.id}">${recipe.name} (GH₵${recipe.ingredientCost.toFixed(2)})</option>
+            `).join('');
+        }
+    }
+
+    addRecipeToOrder() {
+        const recipeId = parseInt(document.getElementById('multiRecipeSelect').value);
+        
+        if (!recipeId) {
+            alert('Please select a recipe');
+            return;
+        }
+
+        const recipe = this.savedRecipes.find(r => r.id === recipeId);
+        if (!recipe) {
+            alert('Recipe not found');
+            return;
+        }
+
+        // Check if recipe already in order
+        if (this.currentOrder.recipes.find(r => r.id === recipeId)) {
+            alert('This recipe is already in the order!');
+            return;
+        }
+
+        // Add recipe to order
+        this.currentOrder.recipes.push({
+            id: recipe.id,
+            name: recipe.name,
+            servings: recipe.servings,
+            ingredients: JSON.parse(JSON.stringify(recipe.ingredients)),
+            ingredientCost: recipe.ingredientCost,
+            scale: recipe.scale || 1
+        });
+
+        this.renderOrderRecipes();
+        this.updateMultiRecipeOrderSummary();
+        document.getElementById('multiRecipeSelect').value = '';
+    }
+
+    renderOrderRecipes() {
+        const list = document.getElementById('orderRecipesList');
+        
+        if (this.currentOrder.recipes.length === 0) {
+            list.innerHTML = '<p class="empty-message">No recipes added to order yet. Select a recipe and click "Add Recipe to Order"!</p>';
+            return;
+        }
+
+        list.innerHTML = this.currentOrder.recipes.map((recipe, index) => `
+            <div class="item order-recipe-item">
+                <div class="item-info">
+                    <div class="item-name">#${index + 1}: ${recipe.name}</div>
+                    <div class="item-details">
+                        <strong>Servings/Size:</strong> ${recipe.servings || 'Not specified'}<br>
+                        <strong>Ingredients:</strong> ${recipe.ingredients.length} items<br>
+                        <strong>Scale:</strong> ${recipe.scale}x<br>
+                        <strong>Cost:</strong> GH₵${(recipe.ingredientCost * recipe.scale).toFixed(2)}
+                    </div>
+                </div>
+                <div class="item-actions">
+                    <button class="btn btn-danger btn-small" onclick="calculator.removeRecipeFromOrder(${index})">Remove</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    removeRecipeFromOrder(index) {
+        this.currentOrder.recipes.splice(index, 1);
+        this.renderOrderRecipes();
+        this.updateMultiRecipeOrderSummary();
+    }
+
+    updateMultiRecipeOrderSummary() {
+        // Calculate total ingredient cost from all recipes
+        const totalIngredientCost = this.currentOrder.recipes.reduce((sum, recipe) => {
+            return sum + (recipe.ingredientCost * recipe.scale);
+        }, 0);
+
+        this.currentOrder.totalIngredientCost = totalIngredientCost;
+
+        // Display ingredient cost
+        document.getElementById('orderTotalIngredientCost').textContent = totalIngredientCost.toFixed(2);
+        document.getElementById('orderSummaryIngredient').textContent = totalIngredientCost.toFixed(2);
+
+        // Get costs from form
+        const packagingCost = parseFloat(document.getElementById('orderPackagingCost').value) || 0;
+        const electricity = parseFloat(document.getElementById('orderElectricity').value) || 0;
+        const gas = parseFloat(document.getElementById('orderGas').value) || 0;
+        const water = parseFloat(document.getElementById('orderWater').value) || 0;
+        const labour = parseFloat(document.getElementById('orderLabour').value) || 0;
+        const transport = parseFloat(document.getElementById('orderTransport').value) || 0;
+        const decorationCost = parseFloat(document.getElementById('orderDecorationCost').value) || 0;
+        const profitPercentage = parseFloat(document.getElementById('orderProfitPercentage').value) || 0;
+
+        // Calculate utilities
+        const utilities = electricity + gas + water;
+
+        // Update display
+        document.getElementById('orderSummaryDecoration').textContent = decorationCost.toFixed(2);
+        document.getElementById('orderSummaryPackaging').textContent = packagingCost.toFixed(2);
+        document.getElementById('orderSummaryLabour').textContent = labour.toFixed(2);
+        document.getElementById('orderSummaryUtilities').textContent = utilities.toFixed(2);
+        document.getElementById('orderSummaryTransport').textContent = transport.toFixed(2);
+
+        // Calculate total production cost
+        const totalProduction = totalIngredientCost + packagingCost + electricity + gas + water + labour + transport + decorationCost;
+        document.getElementById('orderSummaryTotalProduction').textContent = totalProduction.toFixed(2);
+
+        // Calculate profit and final price
+        const profit = totalProduction * (profitPercentage / 100);
+        const finalPrice = totalProduction + profit;
+
+        document.getElementById('orderSummaryProfit').textContent = profit.toFixed(2);
+        document.getElementById('orderSummaryFinalPrice').textContent = finalPrice.toFixed(2);
+    }
+
+    saveMultiRecipeOrder() {
+        if (!document.getElementById('orderName').value.trim()) {
+            alert('Please enter an order name');
+            return;
+        }
+
+        if (this.currentOrder.recipes.length === 0) {
+            alert('Please add at least one recipe to the order');
+            return;
+        }
+
+        const orderToSave = {
+            id: Date.now(),
+            name: document.getElementById('orderName').value,
+            description: document.getElementById('orderDescription').value,
+            recipes: JSON.parse(JSON.stringify(this.currentOrder.recipes)),
+            totalIngredientCost: this.currentOrder.totalIngredientCost,
+            packagingCost: parseFloat(document.getElementById('orderPackagingCost').value) || 0,
+            electricity: parseFloat(document.getElementById('orderElectricity').value) || 0,
+            gas: parseFloat(document.getElementById('orderGas').value) || 0,
+            water: parseFloat(document.getElementById('orderWater').value) || 0,
+            labour: parseFloat(document.getElementById('orderLabour').value) || 0,
+            transport: parseFloat(document.getElementById('orderTransport').value) || 0,
+            decorationCost: parseFloat(document.getElementById('orderDecorationCost').value) || 0,
+            profitPercentage: parseFloat(document.getElementById('orderProfitPercentage').value) || 0,
+            finalPrice: parseFloat(document.getElementById('orderSummaryFinalPrice').textContent),
+            savedAt: new Date().toLocaleString()
+        };
+
+        this.savedOrders.push(orderToSave);
+        this.saveToStorage('savedOrders', this.savedOrders);
+        alert(`Order "${orderToSave.name}" saved successfully!\nFinal Price: GH₵${orderToSave.finalPrice.toFixed(2)}`);
+        
+        // Show saved orders in console for verification
+        console.log('Saved orders:', this.savedOrders);
+    }
+
+    clearMultiRecipeOrder() {
+        if (confirm('Clear the current order?')) {
+            this.currentOrder = {
+                id: null,
+                name: '',
+                description: '',
+                recipes: [],
+                totalIngredientCost: 0,
+                createdAt: null
+            };
+            document.getElementById('orderName').value = '';
+            document.getElementById('orderDescription').value = '';
+            document.getElementById('multiRecipeSelect').value = '';
+            
+            // Reset cost inputs
+            document.getElementById('orderPackagingCost').value = '0';
+            document.getElementById('orderElectricity').value = '0';
+            document.getElementById('orderGas').value = '0';
+            document.getElementById('orderWater').value = '0';
+            document.getElementById('orderLabour').value = '0';
+            document.getElementById('orderTransport').value = '0';
+            document.getElementById('orderDecorationCost').value = '0';
+            document.getElementById('orderProfitPercentage').value = '50';
+            
+            this.renderOrderRecipes();
+            this.updateMultiRecipeOrderSummary();
+        }
     }
 
     // ==========================================
@@ -688,4 +897,5 @@ let calculator;
 document.addEventListener('DOMContentLoaded', () => {
     calculator = new RecipeCostCalculator();
     calculator.updateCostSummary();
+    calculator.updateMultiRecipeOrderSummary();
 });
