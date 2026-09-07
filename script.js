@@ -84,9 +84,10 @@ class RecipeCostCalculator {
         this.renderDecorations();
         this.renderPackaging();
         this.renderSavedRecipes();
+        this.renderSavedOrders();
         this.updateRecipeIngredientsList();
         this.updateMultiRecipeDropdown();
-        this.renderOrderDecorations();
+        this.updateDecorationDropdown();
         console.log('App initialized. Ingredients:', this.ingredients);
     }
 
@@ -149,6 +150,11 @@ class RecipeCostCalculator {
 
         // Add active class to clicked button
         event.target.classList.add('active');
+
+        // Refresh saved orders when switching to that tab
+        if (tabName === 'saved-orders') {
+            this.renderSavedOrders();
+        }
     }
 
     // ==========================================
@@ -620,41 +626,47 @@ class RecipeCostCalculator {
     // DECORATIONS FOR MULTI-RECIPE ORDER
     // ==========================================
 
-    renderOrderDecorations() {
-        const container = document.getElementById('orderDecorationsList');
+    updateDecorationDropdown() {
+        const dropdown = document.getElementById('orderDecorationSelect');
+        dropdown.innerHTML = '<option value="">-- Choose a decoration --</option>';
         
-        if (this.decorations.length === 0) {
-            container.innerHTML = '<p class="empty-message">No decorations available. Go to Decorations tab to add decorations first!</p>';
+        if (this.decorations.length > 0) {
+            dropdown.innerHTML += this.decorations.map(dec => `
+                <option value="${dec.id}">${dec.name} (GH₵${dec.price.toFixed(2)})</option>
+            `).join('');
+        }
+    }
+
+    addDecorationToOrder() {
+        const decorationId = parseInt(document.getElementById('orderDecorationSelect').value);
+        
+        if (!decorationId) {
+            return; // User just opened dropdown
+        }
+
+        const decoration = this.decorations.find(d => d.id === decorationId);
+        if (!decoration) {
+            alert('Decoration not found');
             return;
         }
 
-        container.innerHTML = this.decorations.map(dec => `
-            <div class="decoration-checkbox">
-                <input type="checkbox" id="dec-${dec.id}" value="${dec.id}" 
-                       class="decoration-select" onchange="calculator.updateOrderDecorations()">
-                <label for="dec-${dec.id}">
-                    <strong>${dec.name}</strong> - GH₵${dec.price.toFixed(2)}
-                </label>
-            </div>
-        `).join('');
-    }
+        // Check if decoration already in order
+        if (this.currentOrder.decorations.find(d => d.id === decorationId)) {
+            alert('This decoration is already in the order!');
+            document.getElementById('orderDecorationSelect').value = '';
+            return;
+        }
 
-    updateOrderDecorations() {
-        // Get all checked decorations
-        const checkedDecorations = Array.from(document.querySelectorAll('.decoration-select:checked'));
-        
-        this.currentOrder.decorations = checkedDecorations.map(checkbox => {
-            const decorationId = parseInt(checkbox.value);
-            const decoration = this.decorations.find(d => d.id === decorationId);
-            return {
-                id: decoration.id,
-                name: decoration.name,
-                price: decoration.price
-            };
+        // Add decoration to order
+        this.currentOrder.decorations.push({
+            id: decoration.id,
+            name: decoration.name,
+            price: decoration.price
         });
 
         this.renderSelectedDecorations();
         this.updateMultiRecipeOrderSummary();
+        document.getElementById('orderDecorationSelect').value = '';
     }
 
     renderSelectedDecorations() {
@@ -671,7 +683,7 @@ class RecipeCostCalculator {
         list.innerHTML = this.currentOrder.decorations.map((dec, index) => `
             <div class="item decoration-item">
                 <div class="item-info">
-                    <div class="item-name">${dec.name}</div>
+                    <div class="item-name">✨ ${dec.name}</div>
                     <div class="item-details">Price: GH₵${dec.price.toFixed(2)}</div>
                 </div>
                 <div class="item-actions">
@@ -695,16 +707,6 @@ class RecipeCostCalculator {
 
     removeOrderDecoration(index) {
         this.currentOrder.decorations.splice(index, 1);
-        
-        // Uncheck the corresponding checkbox
-        const decoration = this.currentOrder.decorations[index];
-        if (decoration) {
-            const checkbox = document.getElementById(`dec-${decoration.id}`);
-            if (checkbox) {
-                checkbox.checked = false;
-            }
-        }
-        
         this.renderSelectedDecorations();
         this.updateMultiRecipeOrderSummary();
     }
@@ -813,11 +815,7 @@ class RecipeCostCalculator {
             document.getElementById('orderName').value = '';
             document.getElementById('orderDescription').value = '';
             document.getElementById('multiRecipeSelect').value = '';
-            
-            // Uncheck all decorations
-            document.querySelectorAll('.decoration-select').forEach(checkbox => {
-                checkbox.checked = false;
-            });
+            document.getElementById('orderDecorationSelect').value = '';
             
             // Reset cost inputs
             document.getElementById('orderPackagingCost').value = '0';
@@ -831,6 +829,101 @@ class RecipeCostCalculator {
             this.renderOrderRecipes();
             this.renderSelectedDecorations();
             this.updateMultiRecipeOrderSummary();
+        }
+    }
+
+    // ==========================================
+    // SAVED ORDERS PAGE
+    // ==========================================
+
+    renderSavedOrders() {
+        const list = document.getElementById('savedOrdersList');
+        
+        if (this.savedOrders.length === 0) {
+            list.innerHTML = '<p class="empty-message">No saved orders yet. Create and save an order first!</p>';
+            return;
+        }
+
+        list.innerHTML = this.savedOrders.map(order => {
+            const decorationNames = order.decorations.map(d => d.name).join(', ');
+            const decorationDisplay = decorationNames ? `<br><strong>Decorations:</strong> ${decorationNames}` : '';
+            const totalCost = order.totalIngredientCost + order.totalDecorationCost + order.packagingCost + 
+                            order.electricity + order.gas + order.water + order.labour + order.transport;
+            
+            return `
+            <div class="item saved-order-card">
+                <div class="item-info">
+                    <div class="item-name">💰 ${order.name}</div>
+                    <div class="item-details">
+                        <strong>Description:</strong> ${order.description || 'No description'}<br>
+                        <strong>Recipes:</strong> ${order.recipes.length} recipe(s)<br>
+                        ${decorationDisplay}
+                        <strong>Total Production Cost:</strong> GH₵${totalCost.toFixed(2)}<br>
+                        <strong>Profit (${order.profitPercentage}%):</strong> GH₵${(totalCost * (order.profitPercentage / 100)).toFixed(2)}<br>
+                        <strong style="color: var(--pink-color);">Final Selling Price:</strong> <span style="color: var(--pink-color); font-size: 1.1em;">GH₵${order.finalPrice.toFixed(2)}</span><br>
+                        <strong>Saved:</strong> ${order.savedAt}
+                    </div>
+                </div>
+                <div class="item-actions">
+                    <button class="btn btn-primary btn-small" onclick="calculator.viewOrderDetails(${order.id})">📋 View</button>
+                    <button class="btn btn-danger btn-small" onclick="calculator.deleteOrder(${order.id})">Delete</button>
+                </div>
+            </div>
+        `;
+        }).join('');
+    }
+
+    viewOrderDetails(orderId) {
+        const order = this.savedOrders.find(o => o.id === orderId);
+        if (!order) return;
+
+        let details = `📋 ORDER: ${order.name}\n`;
+        details += `Description: ${order.description || 'No description'}\n`;
+        details += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+
+        details += `🎂 RECIPES (${order.recipes.length}):\n`;
+        order.recipes.forEach((recipe, idx) => {
+            details += `  ${idx + 1}. ${recipe.name} (${recipe.scale}x) - GH₵${(recipe.ingredientCost * recipe.scale).toFixed(2)}\n`;
+        });
+
+        details += `\n✨ DECORATIONS:\n`;
+        if (order.decorations.length > 0) {
+            order.decorations.forEach(dec => {
+                details += `  • ${dec.name} - GH₵${dec.price.toFixed(2)}\n`;
+            });
+        } else {
+            details += `  None\n`;
+        }
+
+        details += `\n💵 COST BREAKDOWN:\n`;
+        details += `  Ingredients:  GH₵${order.totalIngredientCost.toFixed(2)}\n`;
+        details += `  Decorations:  GH₵${order.totalDecorationCost.toFixed(2)}\n`;
+        details += `  Packaging:    GH₵${order.packagingCost.toFixed(2)}\n`;
+        details += `  Labour:       GH₵${order.labour.toFixed(2)}\n`;
+        details += `  Electricity:  GH₵${order.electricity.toFixed(2)}\n`;
+        details += `  Gas:          GH₵${order.gas.toFixed(2)}\n`;
+        details += `  Water:        GH₵${order.water.toFixed(2)}\n`;
+        details += `  Transport:    GH₵${order.transport.toFixed(2)}\n`;
+        
+        const totalProduction = order.totalIngredientCost + order.totalDecorationCost + order.packagingCost + 
+                               order.electricity + order.gas + order.water + order.labour + order.transport;
+        const profit = totalProduction * (order.profitPercentage / 100);
+
+        details += `  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+        details += `  Production Cost: GH₵${totalProduction.toFixed(2)}\n`;
+        details += `  Profit (${order.profitPercentage}%):  GH₵${profit.toFixed(2)}\n`;
+        details += `  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+        details += `  🎯 FINAL PRICE:  GH₵${order.finalPrice.toFixed(2)}\n`;
+        details += `\n  Saved: ${order.savedAt}`;
+
+        alert(details);
+    }
+
+    deleteOrder(orderId) {
+        if (confirm('Are you sure you want to delete this order?')) {
+            this.savedOrders = this.savedOrders.filter(o => o.id !== orderId);
+            this.saveToStorage('savedOrders', this.savedOrders);
+            this.renderSavedOrders();
         }
     }
 
@@ -855,7 +948,7 @@ class RecipeCostCalculator {
         this.decorations.push(decoration);
         this.saveToStorage('decorations', this.decorations);
         this.renderDecorations();
-        this.renderOrderDecorations();
+        this.updateDecorationDropdown();
 
         document.getElementById('decorationForm').reset();
         alert('Decoration added successfully!');
@@ -866,7 +959,7 @@ class RecipeCostCalculator {
             this.decorations = this.decorations.filter(dec => dec.id !== id);
             this.saveToStorage('decorations', this.decorations);
             this.renderDecorations();
-            this.renderOrderDecorations();
+            this.updateDecorationDropdown();
         }
     }
 
@@ -881,7 +974,7 @@ class RecipeCostCalculator {
         list.innerHTML = this.decorations.map(dec => `
             <div class="item">
                 <div class="item-info">
-                    <div class="item-name">${dec.name}</div>
+                    <div class="item-name">✨ ${dec.name}</div>
                     <div class="item-details">Price: GH₵${dec.price.toFixed(2)}</div>
                 </div>
                 <div class="item-actions">
@@ -901,7 +994,7 @@ class RecipeCostCalculator {
             decoration.price = parseFloat(newPrice);
             this.saveToStorage('decorations', this.decorations);
             this.renderDecorations();
-            this.renderOrderDecorations();
+            this.updateDecorationDropdown();
         }
     }
 
