@@ -9,21 +9,23 @@
     --secondary-color: #ffb3c1;
     --accent-color: #ff69b4;
     --soft-pink: #ffc0cb;
+    --soft-pink-2: #ffe5eb;
+    --soft-pink-3: #ffd8e2;
     --black-text: #000000;
     --success-color: #4caf50;
     --danger-color: #f44336;
     --warning-color: #ff9800;
-    --light-bg: #faf8f3;
+    --light-bg: #fff9f7;
     --white: #ffffff;
     --text-dark: #000000;
     --text-light: #333333;
-    --border-color: #ddd;
-    --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --border-color: #f0d9df;
+    --shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
 }
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: var(--light-bg);
+    background: linear-gradient(180deg, #fffdfd 0%, #fff8f8 100%);
     color: var(--text-dark);
     line-height: 1.6;
 }
@@ -41,7 +43,7 @@ body {
     width: 100%;
     background: linear-gradient(135deg, #ffc0cb 0%, #ffb3c1 100%);
     padding: 18px 0;
-    box-shadow: var(--shadow);
+    box-shadow: 0 8px 18px rgba(255, 133, 166, 0.18);
     border-radius: 0;
     margin: 0;
 }
@@ -54,18 +56,19 @@ body {
 }
 
 .app-header h1 {
-    font-size: 2.2em;
+    font-size: clamp(1.8rem, 3vw, 2.5rem);
     margin: 0;
     color: var(--black-text);
+    letter-spacing: 0.02em;
 }
 
 .sidebar {
     width: 280px;
-    background: var(--white);
+    background: linear-gradient(180deg, #fffdfd 0%, #fff4f7 100%);
     border-radius: 18px;
     box-shadow: var(--shadow);
-    border: 1px solid rgba(0, 0, 0, 0.04);
-    padding: 20px 14px;
+    border: 1px solid rgba(255, 166, 191, 0.35);
+    padding: 18px 14px;
     position: sticky;
     top: 20px;
     align-self: flex-start;
@@ -74,7 +77,7 @@ body {
 .sidebar-nav {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 18px;
 }
 
 .nav-section {
@@ -84,12 +87,12 @@ body {
 }
 
 .nav-section-title {
-    font-size: 0.76rem;
-    letter-spacing: 0.08em;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: #666;
+    color: #7a5c67;
     margin: 0 8px 6px;
-    font-weight: 700;
+    font-weight: 800;
 }
 
 .nav-button {
@@ -100,33 +103,44 @@ body {
     padding: 12px 14px;
     border: 1px solid transparent;
     border-radius: 12px;
-    background: #fff5f7;
+    background: var(--soft-pink-2);
     color: var(--black-text);
-    font-size: 0.98rem;
-    font-weight: 600;
+    font-size: 0.96rem;
+    font-weight: 700;
     text-align: left;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
-.nav-button:hover,
+.nav-button:hover {
+    transform: translateX(3px);
+    background: #ffdce7;
+    box-shadow: 0 8px 18px rgba(255, 169, 189, 0.18);
+}
+
 .nav-button.active {
     background: linear-gradient(135deg, #ffc0cb 0%, #ffb3c1 100%);
     border-color: rgba(0,0,0,0.08);
-    transform: translateX(2px);
+    box-shadow: 0 10px 18px rgba(255, 158, 178, 0.2);
 }
 
 .nav-icon {
-    font-size: 1.25rem;
+    font-size: 1.2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
 }
 
 .main-content {
     flex: 1;
-    background: var(--white);
+    background: linear-gradient(180deg, #ffffff 0%, #fffafc 100%);
     border-radius: 18px;
     box-shadow: var(--shadow);
     padding: 24px;
     min-width: 0;
+    border: 1px solid rgba(255, 166, 191, 0.28);
 }
 
 .content-header {
@@ -142,6 +156,7 @@ body {
 .page-title h2 {
     font-size: 1.8rem;
     color: var(--text-dark);
+    margin: 0;
 }
 
 .action-buttons {
@@ -160,15 +175,15 @@ button {
     border-radius: 10px;
     cursor: pointer;
     font-size: 1em;
-    font-weight: 600;
-    transition: all 0.3s ease;
+    font-weight: 700;
+    transition: all 0.2s ease;
 }
 
 .action-btn:hover,
 button:hover {
     background-color: #ffaab7;
-    transform: translateY(-2px);
-    box-shadow: var(--shadow);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(255, 160, 179, 0.18);
 }
 
 .action-btn.primary {
@@ -176,17 +191,17 @@ button:hover {
 }
 
 .action-btn.secondary {
-    background: #f5f5f5;
+    background: #f7f7f7;
 }
 
 .action-btn.danger {
-    background: var(--danger-color);
+    background: linear-gradient(135deg, #ff6d6d 0%, #d93030 100%);
     color: var(--white);
 }
 
 .tab-content {
     display: none;
-    animation: fadeIn 0.3s ease;
+    animation: fadeIn 0.25s ease;
 }
 
 .tab-content.active {
@@ -196,7 +211,7 @@ button:hover {
 @keyframes fadeIn {
     from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(8px);
     }
     to {
         opacity: 1;
@@ -204,8 +219,17 @@ button:hover {
     }
 }
 
-.form-section, .table-section, .summary-section {
+.form-section,
+.table-section,
+.summary-section {
     margin-top: 18px;
+}
+
+.form-section {
+    background: #fff7f9;
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 18px;
 }
 
 .form-group {
@@ -215,7 +239,7 @@ button:hover {
 label {
     display: block;
     margin-bottom: 8px;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--text-dark);
 }
 
@@ -225,20 +249,21 @@ input[type="date"],
 select,
 textarea {
     width: 100%;
-    padding: 10px 12px;
-    border: 1px solid var(--border-color);
+    padding: 11px 12px;
+    border: 1px solid #f0dfe6;
     border-radius: 10px;
     font-size: 1em;
     background-color: var(--white);
     color: var(--text-dark);
+    transition: all 0.2s ease;
 }
 
 input:focus,
 select:focus,
 textarea:focus {
     outline: none;
-    border-color: var(--soft-pink);
-    box-shadow: 0 0 5px rgba(255, 192, 203, 0.4);
+    border-color: #ffb8c9;
+    box-shadow: 0 0 0 4px rgba(255, 192, 203, 0.18);
 }
 
 textarea {
@@ -247,13 +272,13 @@ textarea {
 }
 
 .btn {
-    background-color: var(--soft-pink);
+    background: linear-gradient(135deg, #ffc0cb 0%, #ffb3c1 100%);
     color: var(--black-text);
     padding: 10px 16px;
     border: none;
     border-radius: 10px;
     cursor: pointer;
-    font-weight: 600;
+    font-weight: 700;
     margin-top: 8px;
 }
 
@@ -262,11 +287,11 @@ textarea {
 }
 
 .btn-secondary {
-    background: #f5f5f5;
+    background: #f7f7f7;
 }
 
 .btn-danger {
-    background: var(--danger-color);
+    background: linear-gradient(135deg, #ff6d6d 0%, #d93030 100%);
     color: var(--white);
 }
 
@@ -278,20 +303,21 @@ textarea {
 }
 
 .item {
-    background: #fff9fa;
-    border: 1px solid #f2d5dc;
+    background: linear-gradient(180deg, #fffdfd 0%, #fff4f7 100%);
+    border: 1px solid #f5d7df;
     border-radius: 12px;
     padding: 16px;
+    box-shadow: 0 8px 16px rgba(255, 173, 193, 0.08);
 }
 
 .item-name {
-    font-weight: 700;
+    font-weight: 800;
     margin-bottom: 6px;
 }
 
 .item-details {
     color: var(--text-light);
-    font-size: 0.95rem;
+    font-size: 0.96rem;
 }
 
 .data-table {
@@ -299,15 +325,15 @@ textarea {
     border-collapse: collapse;
     margin-top: 12px;
     background-color: var(--white);
-    box-shadow: var(--shadow);
-    border-radius: 5px;
+    box-shadow: 0 10px 20px rgba(255, 160, 179, 0.08);
+    border-radius: 10px;
     overflow: hidden;
 }
 
 .data-table thead {
-    background-color: var(--soft-pink);
+    background: linear-gradient(135deg, #ffc0cb 0%, #ffb3c1 100%);
     color: var(--black-text);
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .data-table th,
@@ -318,7 +344,7 @@ textarea {
 }
 
 .data-table tbody tr:hover {
-    background-color: #fff5f7;
+    background-color: #fff5f8;
 }
 
 .summary-section {
@@ -328,10 +354,11 @@ textarea {
 }
 
 .summary-card {
-    background: #fff9fa;
-    border: 1px solid #f2d5dc;
+    background: linear-gradient(180deg, #fffdfd 0%, #fff4f7 100%);
+    border: 1px solid #f5d7df;
     border-radius: 14px;
     padding: 20px;
+    box-shadow: 0 8px 16px rgba(255, 173, 193, 0.08);
 }
 
 .summary-card.highlight {
@@ -340,7 +367,7 @@ textarea {
 
 .summary-value {
     font-size: 1.6rem;
-    font-weight: 700;
+    font-weight: 800;
     margin-top: 8px;
 }
 
@@ -361,6 +388,10 @@ textarea {
 }
 
 @media (max-width: 768px) {
+    .header-content {
+        padding: 0 14px;
+    }
+
     .content-header {
         flex-direction: column;
         align-items: flex-start;
@@ -378,4 +409,8 @@ textarea {
 
 .hidden {
     display: none !important;
+}
+
+h2, h3, h4 {
+    color: var(--text-dark);
 }
