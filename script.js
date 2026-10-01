@@ -56,7 +56,9 @@ class RecipeCostCalculator {
 
     bindSidebarNavigation() {
         document.querySelectorAll('.nav-button').forEach(button => {
-            button.addEventListener('click', () => {
+            button.addEventListener('click', (event) => {
+                event.preventDefault();
+                console.log('Sidebar click:', button.dataset.tab);
                 this.switchTab(button.dataset.tab, button);
             });
         });
