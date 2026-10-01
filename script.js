@@ -1,77 +1,44 @@
-// ==========================================
-// CAKE RECIPE COST CALCULATOR - GHANA
-// ==========================================
-
 class RecipeCostCalculator {
     constructor() {
         this.ingredients = this.loadFromStorage('ingredients') || [];
-        this.savedRecipes = this.loadFromStorage('savedRecipes') || [];
-        this.savedOrders = this.loadFromStorage('savedOrders') || [];
         this.decorations = this.loadFromStorage('decorations') || [];
-        this.packaging = this.loadFromStorage('packaging') || this.initializePackaging();
-        this.currentRecipe = {
-            id: null,
-            name: '',
-            servings: '',
-            ingredients: [],
-            ingredientCost: 0,
-            baseIngredientCost: 0,
-            scale: 1
-        };
-        this.currentOrder = {
-            id: null,
-            name: '',
-            description: '',
-            recipes: [],
-            decorations: [],
-            totalIngredientCost: 0,
-            totalDecorationCost: 0,
-            createdAt: null
-        };
+        this.packaging = this.loadFromStorage('packaging') || this.getDefaultPackaging();
         this.init();
     }
 
-    // ==========================================
-    // STORAGE MANAGEMENT
-    // ==========================================
-    
     loadFromStorage(key) {
         try {
-            return JSON.parse(localStorage.getItem(key));
-        } catch (e) {
-            console.error(`Error loading ${key}:`, e);
+            const item = localStorage.getItem(key);
+            return item ? JSON.parse(item) : null;
+        } catch (error) {
+            console.error(`Unable to load ${key}:`, error);
             return null;
         }
     }
 
-    saveToStorage(key, data) {
+    saveToStorage(key, value) {
         try {
-            localStorage.setItem(key, JSON.stringify(data));
-        } catch (e) {
-            console.error(`Error saving ${key}:`, e);
-            alert('Failed to save data. Please check your storage space.');
+            localStorage.setItem(key, JSON.stringify(value));
+        } catch (error) {
+            console.error(`Unable to save ${key}:`, error);
         }
     }
 
-    // ==========================================
-    // INITIALIZATION
-    // ==========================================
-
-    initializePackaging() {
+    getDefaultPackaging() {
         return {
-            'boxes': [
+            boxes: [
                 { name: '6-inch box', price: 0 },
                 { name: '8-inch box', price: 0 },
                 { name: '10-inch box', price: 0 },
                 { name: '12-inch box', price: 0 }
             ],
-            'boards': [
+            boards: [
                 { name: '8-inch cake board', price: 0 },
                 { name: '10-inch cake board', price: 0 },
                 { name: '12-inch cake board', price: 0 },
                 { name: 'Cake drum', price: 0 }
             ],
-            'other': [
+            other: [
                 { name: 'Ribbon', price: 0 },
                 { name: 'Dowels', price: 0 }
             ]
@@ -79,1030 +46,246 @@ class RecipeCostCalculator {
     }
 
     init() {
-        this.setupEventListeners();
+        this.bindSidebarNavigation();
+        this.bindActionButtons();
+        this.bindForms();
         this.renderIngredients();
         this.renderDecorations();
-        this.renderPackaging();
-        this.renderSavedRecipes();
-        this.renderSavedOrders();
-        this.updateRecipeIngredientsList();
-        this.updateMultiRecipeDropdown();
-        this.updateDecorationDropdown();
-        console.log('App initialized. Ingredients:', this.ingredients);
+        this.switchTab('ingredients', document.querySelector('.nav-button[data-tab="ingredients"]'));
     }
 
-    setupEventListeners() {
-        // Tab navigation
-        document.querySelectorAll('.tab-button').forEach(button => {
-            button.addEventListener('click', (e) => this.switchTab(e.target.dataset.tab));
-        });
-
-        // Ingredients tab
-        document.getElementById('ingredientForm').addEventListener('submit', (e) => this.addIngredient(e));
-
-        // Recipe tab
-        document.getElementById('recipeIngredientForm').addEventListener('submit', (e) => this.addToRecipe(e));
-        document.getElementById('recipeName').addEventListener('input', (e) => {
-            this.currentRecipe.name = e.target.value;
-        });
-        document.getElementById('recipeServings').addEventListener('input', (e) => {
-            this.currentRecipe.servings = e.target.value;
-        });
-
-        // Recipe scale
-        document.getElementById('recipeScale').addEventListener('change', (e) => this.updateRecipeScale(e));
-        document.getElementById('recipeScale').addEventListener('input', (e) => this.updateRecipeScale(e));
-
-        // Decorations tab
-        document.getElementById('decorationForm').addEventListener('submit', (e) => this.addDecoration(e));
-
-        // Production costs form
-        document.querySelectorAll('#productionCostsForm input').forEach(input => {
-            input.addEventListener('change', () => this.updateCostSummary());
-        });
-
-        // Multi-recipe order costs form
-        document.querySelectorAll('#orderCostsForm input').forEach(input => {
-            input.addEventListener('change', () => this.updateMultiRecipeOrderSummary());
-        });
-
-        // Packaging prices
-        document.addEventListener('change', (e) => {
-            if (e.target.classList.contains('packaging-price-input')) {
-                this.updatePackagingPrice(e.target);
-            }
+    bindSidebarNavigation() {
+        document.querySelectorAll('.nav-button').forEach(button => {
+            button.addEventListener('click', () => {
+                this.switchTab(button.dataset.tab, button);
+            });
         });
     }
 
-    switchTab(tabName) {
-        // Hide all tabs
-        document.querySelectorAll('.tab-content').forEach(tab => {
-            tab.classList.remove('active');
-        });
+    bindActionButtons() {
+        const exportBtn = document.getElementById('exportBtn');
+        const importBtn = document.getElementById('importBtn');
+        const resetBtn = document.getElementById('resetBtn');
 
-        // Remove active class from all buttons
-        document.querySelectorAll('.tab-button').forEach(btn => {
-            btn.classList.remove('active');
-        });
-
-        // Show selected tab
-        document.getElementById(tabName).classList.add('active');
-
-        // Add active class to clicked button
-        event.target.classList.add('active');
-
-        // Refresh saved orders when switching to that tab
-        if (tabName === 'saved-orders') {
-            this.renderSavedOrders();
+        if (exportBtn) exportBtn.addEventListener('click', () => alert('Export is not available yet.'));
+        if (importBtn) importBtn.addEventListener('click', () => alert('Import is not available yet.'));
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+                if (confirm('Reset all saved data?')) {
+                    localStorage.clear();
+                    this.ingredients = [];
+                    this.decorations = [];
+                    this.packaging = this.getDefaultPackaging();
+                    this.renderIngredients();
+                    this.renderDecorations();
+                    alert('Data reset successfully.');
+                }
+            });
         }
     }
 
-    // ==========================================
-    // RECIPE SCALING
-    // ==========================================
+    bindForms() {
+        const ingredientForm = document.getElementById('ingredientForm');
+        if (ingredientForm) {
+            ingredientForm.addEventListener('submit', (event) => this.addIngredient(event));
+        }
 
-    updateRecipeScale(e) {
-        const scale = parseFloat(e.target.value) || 1;
-        
-        if (scale <= 0) {
-            alert('Scale must be greater than 0');
-            document.getElementById('recipeScale').value = 1;
+        const decorationForm = document.getElementById('decorationForm');
+        if (decorationForm) {
+            decorationForm.addEventListener('submit', (event) => this.addDecoration(event));
+        }
+
+        const packagingForm = document.getElementById('packagingForm');
+        if (packagingForm) {
+            packagingForm.addEventListener('submit', (event) => this.addPackaging(event));
+        }
+    }
+
+    switchTab(tabName, button) {
+        document.querySelectorAll('.tab-content').forEach(tab => {
+            tab.classList.toggle('active', tab.id === tabName);
+        });
+
+        document.querySelectorAll('.nav-button').forEach(btn => {
+            btn.classList.toggle('active', btn === button || btn.dataset.tab === tabName);
+        });
+
+        const pageTitle = document.getElementById('pageTitle');
+        if (pageTitle) {
+            const label = button ? button.textContent.trim().replace(/\s+/g, ' ') : tabName;
+            pageTitle.textContent = label;
+        }
+    }
+
+    addIngredient(event) {
+        event.preventDefault();
+
+        const nameInput = document.getElementById('ingredientName');
+        const categoryInput = document.getElementById('ingredientCategory');
+        const unitInput = document.getElementById('ingredientUnit');
+        const costInput = document.getElementById('ingredientCost');
+
+        if (!nameInput || !categoryInput || !unitInput || !costInput) {
             return;
         }
 
-        this.currentRecipe.scale = scale;
-        
-        // Update display
-        const scaleText = scale === 1 ? '1x' : `${scale}x`;
-        document.getElementById('scaleMultiplier').textContent = scaleText;
-        document.getElementById('scaleLabel').textContent = scaleText;
-        
-        // Show/hide scaled cost display
-        if (scale !== 1) {
-            document.getElementById('scaleInfo').style.display = 'block';
-            document.getElementById('scaledCostDisplay').style.display = 'block';
-        } else {
-            document.getElementById('scaleInfo').style.display = 'none';
-            document.getElementById('scaledCostDisplay').style.display = 'none';
+        const name = nameInput.value.trim();
+        const category = categoryInput.value.trim();
+        const unit = unitInput.value.trim();
+        const cost = parseFloat(costInput.value);
+
+        if (!name || !category || !unit || Number.isNaN(cost) || cost < 0) {
+            alert('Please fill in all ingredient fields correctly.');
+            return;
         }
-        
-        this.updateCostSummary();
-    }
-
-    // ==========================================
-    // INGREDIENTS MANAGEMENT
-    // ==========================================
-
-    addIngredient(e) {
-        e.preventDefault();
 
         const ingredient = {
             id: Date.now(),
-            name: document.getElementById('ingredientName').value,
-            category: document.getElementById('ingredientCategory').value,
-            purchasePrice: parseFloat(document.getElementById('purchasePrice').value),
-            purchaseQuantity: parseFloat(document.getElementById('purchaseQuantity').value),
-            purchaseUnit: document.getElementById('purchaseUnit').value
+            name,
+            category,
+            unit,
+            costPerUnit: cost,
+            purchasePrice: cost,
+            purchaseQuantity: 1,
+            purchaseUnit: unit
         };
-
-        if (!ingredient.name || !ingredient.category || ingredient.purchasePrice <= 0 || 
-            ingredient.purchaseQuantity <= 0 || !ingredient.purchaseUnit) {
-            alert('Please fill in all fields with valid values');
-            return;
-        }
 
         this.ingredients.push(ingredient);
         this.saveToStorage('ingredients', this.ingredients);
-        console.log('Ingredient added:', ingredient);
-        console.log('All ingredients:', this.ingredients);
-        
         this.renderIngredients();
-        this.updateRecipeIngredientsList();
-
-        // Reset form
-        document.getElementById('ingredientForm').reset();
-        alert('Ingredient added successfully!');
-    }
-
-    deleteIngredient(id) {
-        if (confirm('Are you sure you want to delete this ingredient?')) {
-            this.ingredients = this.ingredients.filter(ing => ing.id !== id);
-            this.saveToStorage('ingredients', this.ingredients);
-            this.renderIngredients();
-            this.updateRecipeIngredientsList();
-        }
+        event.target.reset();
+        alert('Ingredient added successfully.');
     }
 
     renderIngredients() {
-        const list = document.getElementById('ingredientsList');
-        
+        const tableBody = document.querySelector('#ingredientTable tbody');
+        if (!tableBody) return;
+
         if (this.ingredients.length === 0) {
-            list.innerHTML = '<p class="empty-message">No ingredients added yet. Add your first ingredient above!</p>';
-            return;
-        }
-
-        list.innerHTML = this.ingredients.map(ing => `
-            <div class="item">
-                <div class="item-info">
-                    <div class="item-name">${ing.name}</div>
-                    <div class="item-details">
-                        <strong>Category:</strong> ${this.getCategoryLabel(ing.category)}<br>
-                        <strong>Price:</strong> GH₵${ing.purchasePrice.toFixed(2)} for ${ing.purchaseQuantity} ${ing.purchaseUnit}
-                        <br><strong>Unit price:</strong> GH₵${(ing.purchasePrice / ing.purchaseQuantity).toFixed(3)}/${ing.purchaseUnit}
-                    </div>
-                </div>
-                <div class="item-actions">
-                    <button class="btn btn-edit btn-small" onclick="calculator.editIngredient(${ing.id})">Edit</button>
-                    <button class="btn btn-danger btn-small" onclick="calculator.deleteIngredient(${ing.id})">Delete</button>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    editIngredient(id) {
-        const ingredient = this.ingredients.find(ing => ing.id === id);
-        if (!ingredient) return;
-
-        document.getElementById('ingredientName').value = ingredient.name;
-        document.getElementById('ingredientCategory').value = ingredient.category;
-        document.getElementById('purchasePrice').value = ingredient.purchasePrice;
-        document.getElementById('purchaseQuantity').value = ingredient.purchaseQuantity;
-        document.getElementById('purchaseUnit').value = ingredient.purchaseUnit;
-
-        // Change button text and function
-        const form = document.getElementById('ingredientForm');
-        const submitBtn = form.querySelector('button[type="submit"]');
-        submitBtn.textContent = 'Update Ingredient';
-
-        // Remove old listener and add new one
-        const newForm = form.cloneNode(true);
-        form.parentNode.replaceChild(newForm, form);
-
-        newForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-
-            ingredient.name = document.getElementById('ingredientName').value;
-            ingredient.category = document.getElementById('ingredientCategory').value;
-            ingredient.purchasePrice = parseFloat(document.getElementById('purchasePrice').value);
-            ingredient.purchaseQuantity = parseFloat(document.getElementById('purchaseQuantity').value);
-            ingredient.purchaseUnit = document.getElementById('purchaseUnit').value;
-
-            this.saveToStorage('ingredients', this.ingredients);
-            this.renderIngredients();
-            this.updateRecipeIngredientsList();
-            this.updateCostSummary();
-
-            newForm.reset();
-            const btn = newForm.querySelector('button[type="submit"]');
-            btn.textContent = 'Add Ingredient';
-            this.setupEventListeners();
-            alert('Ingredient updated successfully!');
-        });
-    }
-
-    getCategoryLabel(category) {
-        const labels = {
-            'dry': 'Dry Ingredients',
-            'wet': 'Wet Ingredients',
-            'decoration': 'Decorations',
-            'packaging': 'Packaging'
-        };
-        return labels[category] || category;
-    }
-
-    // ==========================================
-    // RECIPE CALCULATOR
-    // ==========================================
-
-    updateRecipeIngredientsList() {
-        const datalist = document.getElementById('ingredientsList-datalist');
-        datalist.innerHTML = this.ingredients.map(ing => 
-            `<option value="${ing.name}"></option>`
-        ).join('');
-        console.log('Updated datalist with ingredients:', this.ingredients.map(i => i.name));
-    }
-
-    addToRecipe(e) {
-        e.preventDefault();
-
-        const ingredientName = document.getElementById('recipeIngredient').value.trim();
-        const quantity = parseFloat(document.getElementById('recipeQuantity').value);
-        const unit = document.getElementById('recipeUnit').value;
-
-        console.log('Looking for ingredient:', ingredientName);
-        console.log('Available ingredients:', this.ingredients.map(i => i.name));
-
-        if (!ingredientName || quantity <= 0 || !unit) {
-            alert('Please fill in all recipe fields');
-            return;
-        }
-
-        // Find ingredient - case insensitive
-        let ingredient = this.ingredients.find(ing => 
-            ing.name.toLowerCase().trim() === ingredientName.toLowerCase().trim()
-        );
-        
-        if (!ingredient) {
-            console.log('Ingredient not found in database');
-            alert(`Ingredient "${ingredientName}" not found in your database.\n\nPlease go to the "Ingredients" tab and add it first!`);
-            return;
-        }
-
-        const recipeIngredient = {
-            id: Date.now(),
-            ingredientId: ingredient.id,
-            ingredientName: ingredient.name,
-            quantity: quantity,
-            unit: unit,
-            cost: this.calculateCost(ingredient, quantity, unit)
-        };
-
-        this.currentRecipe.ingredients.push(recipeIngredient);
-        this.renderRecipeIngredients();
-        this.updateCostSummary();
-
-        // Reset form
-        document.getElementById('recipeIngredientForm').reset();
-        alert(`${ingredient.name} added to recipe!`);
-    }
-
-    calculateCost(ingredient, quantity, unit) {
-        // Convert everything to base unit
-        const conversionFactors = {
-            'kg': 1000,    // to g
-            'g': 1,
-            'litre': 1000, // to ml
-            'ml': 1,
-            'cup': 237,    // to ml
-            'tablespoon': 14.787,  // to ml
-            'teaspoon': 4.929,     // to ml
-            'each': 1
-        };
-
-        const ingredientBaseQuantity = ingredient.purchaseQuantity * (conversionFactors[ingredient.purchaseUnit] || 1);
-        const usedQuantityInBase = quantity * (conversionFactors[unit] || 1);
-        const costPerBase = ingredient.purchasePrice / ingredientBaseQuantity;
-        const totalCost = usedQuantityInBase * costPerBase;
-
-        return totalCost;
-    }
-
-    removeRecipeIngredient(id) {
-        this.currentRecipe.ingredients = this.currentRecipe.ingredients.filter(ing => ing.id !== id);
-        this.renderRecipeIngredients();
-        this.updateCostSummary();
-    }
-
-    renderRecipeIngredients() {
-        const list = document.getElementById('recipeIngredientsList');
-        
-        if (this.currentRecipe.ingredients.length === 0) {
-            list.innerHTML = '<p class="empty-message">No ingredients added to recipe yet.</p>';
-            return;
-        }
-
-        list.innerHTML = this.currentRecipe.ingredients.map(ing => `
-            <div class="item recipe-item">
-                <div class="item-info">
-                    <div class="item-name">${ing.ingredientName}</div>
-                    <div class="item-details">
-                        Amount: ${ing.quantity} ${ing.unit} | Cost: GH₵${ing.cost.toFixed(2)}
-                    </div>
-                </div>
-                <div class="item-actions">
-                    <button class="btn btn-danger btn-small" onclick="calculator.removeRecipeIngredient(${ing.id})">Remove</button>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    // ==========================================
-    // SAVE/LOAD RECIPES
-    // ==========================================
-
-    saveRecipe() {
-        if (!this.currentRecipe.name.trim()) {
-            alert('Please enter a recipe name');
-            return;
-        }
-
-        if (this.currentRecipe.ingredients.length === 0) {
-            alert('Please add at least one ingredient to the recipe');
-            return;
-        }
-
-        const recipeToSave = {
-            id: Date.now(),
-            name: this.currentRecipe.name,
-            servings: this.currentRecipe.servings,
-            ingredients: JSON.parse(JSON.stringify(this.currentRecipe.ingredients)),
-            ingredientCost: this.currentRecipe.baseIngredientCost,
-            scale: this.currentRecipe.scale,
-            savedAt: new Date().toLocaleString()
-        };
-
-        this.savedRecipes.push(recipeToSave);
-        this.saveToStorage('savedRecipes', this.savedRecipes);
-        this.renderSavedRecipes();
-        this.updateMultiRecipeDropdown();
-        alert(`Recipe "${recipeToSave.name}" saved successfully!`);
-    }
-
-    clearRecipe() {
-        if (confirm('Clear the current recipe?')) {
-            this.currentRecipe = {
-                id: null,
-                name: '',
-                servings: '',
-                ingredients: [],
-                ingredientCost: 0,
-                baseIngredientCost: 0,
-                scale: 1
-            };
-            document.getElementById('recipeName').value = '';
-            document.getElementById('recipeServings').value = '';
-            document.getElementById('recipeScale').value = '1';
-            this.renderRecipeIngredients();
-            this.updateCostSummary();
-            document.getElementById('scaleInfo').style.display = 'none';
-            document.getElementById('scaledCostDisplay').style.display = 'none';
-        }
-    }
-
-    loadRecipe(recipeId) {
-        const recipe = this.savedRecipes.find(r => r.id === recipeId);
-        if (!recipe) return;
-
-        this.currentRecipe = {
-            id: recipe.id,
-            name: recipe.name,
-            servings: recipe.servings,
-            ingredients: JSON.parse(JSON.stringify(recipe.ingredients)),
-            ingredientCost: recipe.ingredientCost,
-            baseIngredientCost: recipe.ingredientCost,
-            scale: recipe.scale || 1
-        };
-
-        document.getElementById('recipeName').value = recipe.name;
-        document.getElementById('recipeServings').value = recipe.servings;
-        document.getElementById('recipeScale').value = recipe.scale || 1;
-        this.renderRecipeIngredients();
-        this.updateCostSummary();
-        
-        // Update scale display
-        if (recipe.scale !== 1) {
-            document.getElementById('scaleInfo').style.display = 'block';
-            document.getElementById('scaledCostDisplay').style.display = 'block';
-        }
-
-        // Switch to recipe tab
-        this.switchTab('recipe');
-        alert(`Recipe "${recipe.name}" loaded!`);
-    }
-
-    deleteRecipe(recipeId) {
-        if (confirm('Are you sure you want to delete this recipe?')) {
-            this.savedRecipes = this.savedRecipes.filter(r => r.id !== recipeId);
-            this.saveToStorage('savedRecipes', this.savedRecipes);
-            this.renderSavedRecipes();
-            this.updateMultiRecipeDropdown();
-        }
-    }
-
-    renderSavedRecipes() {
-        const list = document.getElementById('savedRecipesList');
-        
-        if (this.savedRecipes.length === 0) {
-            list.innerHTML = '<p class="empty-message">No recipes saved yet. Create and save a recipe first!</p>';
-            return;
-        }
-
-        list.innerHTML = this.savedRecipes.map(recipe => {
-            const scaleText = recipe.scale && recipe.scale !== 1 ? `(${recipe.scale}x)` : '';
-            return `
-            <div class="item saved-recipe-card">
-                <div class="item-info">
-                    <div class="item-name">🎂 ${recipe.name} ${scaleText}</div>
-                    <div class="item-details">
-                        <strong>Servings/Size:</strong> ${recipe.servings || 'Not specified'}<br>
-                        <strong>Ingredients:</strong> ${recipe.ingredients.length} items<br>
-                        <strong>Base Ingredient Cost:</strong> GH₵${recipe.ingredientCost.toFixed(2)}<br>
-                        ${recipe.scale && recipe.scale !== 1 ? `<strong>Scale:</strong> ${recipe.scale}x (Cost: GH₵${(recipe.ingredientCost * recipe.scale).toFixed(2)})<br>` : ''}
-                        <strong>Saved:</strong> ${recipe.savedAt}
-                    </div>
-                </div>
-                <div class="item-actions">
-                    <button class="btn btn-primary btn-small" onclick="calculator.loadRecipe(${recipe.id})">📋 Load</button>
-                    <button class="btn btn-danger btn-small" onclick="calculator.deleteRecipe(${recipe.id})">Delete</button>
-                </div>
-            </div>
-        `;
-        }).join('');
-    }
-
-    // ==========================================
-    // MULTI-RECIPE ORDER MANAGEMENT
-    // ==========================================
-
-    updateMultiRecipeDropdown() {
-        const dropdown = document.getElementById('multiRecipeSelect');
-        dropdown.innerHTML = '<option value="">-- Choose a saved recipe --</option>';
-        
-        if (this.savedRecipes.length > 0) {
-            dropdown.innerHTML += this.savedRecipes.map(recipe => `
-                <option value="${recipe.id}">${recipe.name} (GH₵${recipe.ingredientCost.toFixed(2)})</option>
-            `).join('');
-        }
-    }
-
-    addRecipeToOrder() {
-        const recipeId = parseInt(document.getElementById('multiRecipeSelect').value);
-        
-        if (!recipeId) {
-            alert('Please select a recipe');
-            return;
-        }
-
-        const recipe = this.savedRecipes.find(r => r.id === recipeId);
-        if (!recipe) {
-            alert('Recipe not found');
-            return;
-        }
-
-        // Check if recipe already in order
-        if (this.currentOrder.recipes.find(r => r.id === recipeId)) {
-            alert('This recipe is already in the order!');
-            return;
-        }
-
-        // Add recipe to order
-        this.currentOrder.recipes.push({
-            id: recipe.id,
-            name: recipe.name,
-            servings: recipe.servings,
-            ingredients: JSON.parse(JSON.stringify(recipe.ingredients)),
-            ingredientCost: recipe.ingredientCost,
-            scale: recipe.scale || 1
-        });
-
-        this.renderOrderRecipes();
-        this.updateMultiRecipeOrderSummary();
-        document.getElementById('multiRecipeSelect').value = '';
-    }
-
-    renderOrderRecipes() {
-        const list = document.getElementById('orderRecipesList');
-        
-        if (this.currentOrder.recipes.length === 0) {
-            list.innerHTML = '<p class="empty-message">No recipes added to order yet. Select a recipe and click "Add Recipe to Order"!</p>';
-            return;
-        }
-
-        list.innerHTML = this.currentOrder.recipes.map((recipe, index) => `
-            <div class="item order-recipe-item">
-                <div class="item-info">
-                    <div class="item-name">#${index + 1}: ${recipe.name}</div>
-                    <div class="item-details">
-                        <strong>Servings/Size:</strong> ${recipe.servings || 'Not specified'}<br>
-                        <strong>Ingredients:</strong> ${recipe.ingredients.length} items<br>
-                        <strong>Scale:</strong> ${recipe.scale}x<br>
-                        <strong>Cost:</strong> GH₵${(recipe.ingredientCost * recipe.scale).toFixed(2)}
-                    </div>
-                </div>
-                <div class="item-actions">
-                    <button class="btn btn-danger btn-small" onclick="calculator.removeRecipeFromOrder(${index})">Remove</button>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    removeRecipeFromOrder(index) {
-        this.currentOrder.recipes.splice(index, 1);
-        this.renderOrderRecipes();
-        this.updateMultiRecipeOrderSummary();
-    }
-
-    // ==========================================
-    // DECORATIONS FOR MULTI-RECIPE ORDER
-    // ==========================================
-
-    updateDecorationDropdown() {
-        const dropdown = document.getElementById('orderDecorationSelect');
-        dropdown.innerHTML = '<option value="">-- Choose a decoration --</option>';
-        
-        if (this.decorations.length > 0) {
-            dropdown.innerHTML += this.decorations.map(dec => `
-                <option value="${dec.id}">${dec.name} (GH₵${dec.price.toFixed(2)})</option>
-            `).join('');
-        }
-    }
-
-    addDecorationToOrder() {
-        const decorationId = parseInt(document.getElementById('orderDecorationSelect').value);
-        
-        if (!decorationId) {
-            return; // User just opened dropdown
-        }
-
-        const decoration = this.decorations.find(d => d.id === decorationId);
-        if (!decoration) {
-            alert('Decoration not found');
-            return;
-        }
-
-        // Check if decoration already in order
-        if (this.currentOrder.decorations.find(d => d.id === decorationId)) {
-            alert('This decoration is already in the order!');
-            document.getElementById('orderDecorationSelect').value = '';
-            return;
-        }
-
-        // Add decoration to order
-        this.currentOrder.decorations.push({
-            id: decoration.id,
-            name: decoration.name,
-            price: decoration.price
-        });
-
-        this.renderSelectedDecorations();
-        this.updateMultiRecipeOrderSummary();
-        document.getElementById('orderDecorationSelect').value = '';
-    }
-
-    renderSelectedDecorations() {
-        const list = document.getElementById('selectedDecorationsList');
-        
-        if (this.currentOrder.decorations.length === 0) {
-            list.innerHTML = '<p class="empty-message">No decorations selected yet.</p>';
-            return;
-        }
-
-        const totalDecorationCost = this.currentOrder.decorations.reduce((sum, dec) => sum + dec.price, 0);
-        this.currentOrder.totalDecorationCost = totalDecorationCost;
-
-        list.innerHTML = this.currentOrder.decorations.map((dec, index) => `
-            <div class="item decoration-item">
-                <div class="item-info">
-                    <div class="item-name">✨ ${dec.name}</div>
-                    <div class="item-details">Price: GH₵${dec.price.toFixed(2)}</div>
-                </div>
-                <div class="item-actions">
-                    <button class="btn btn-danger btn-small" onclick="calculator.removeOrderDecoration(${index})">Remove</button>
-                </div>
-            </div>
-        `).join('');
-
-        // Add total decoration cost at the end
-        if (this.currentOrder.decorations.length > 0) {
-            list.innerHTML += `
-                <div class="item" style="background: #e8f5e9; margin-top: 10px;">
-                    <div class="item-info">
-                        <div class="item-name" style="color: #2e7d32; font-weight: bold;">Total Decoration Cost</div>
-                        <div class="item-details" style="color: #2e7d32;">GH₵${totalDecorationCost.toFixed(2)}</div>
-                    </div>
-                </div>
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="5">No ingredients saved yet.</td>
+                </tr>
             `;
-        }
-    }
-
-    removeOrderDecoration(index) {
-        this.currentOrder.decorations.splice(index, 1);
-        this.renderSelectedDecorations();
-        this.updateMultiRecipeOrderSummary();
-    }
-
-    // ==========================================
-    // MULTI-RECIPE ORDER SUMMARY
-    // ==========================================
-
-    updateMultiRecipeOrderSummary() {
-        // Calculate total ingredient cost from all recipes
-        const totalIngredientCost = this.currentOrder.recipes.reduce((sum, recipe) => {
-            return sum + (recipe.ingredientCost * recipe.scale);
-        }, 0);
-
-        this.currentOrder.totalIngredientCost = totalIngredientCost;
-
-        // Calculate total decoration cost
-        const totalDecorationCost = this.currentOrder.decorations.reduce((sum, dec) => sum + dec.price, 0);
-        this.currentOrder.totalDecorationCost = totalDecorationCost;
-
-        // Display ingredient cost
-        document.getElementById('orderTotalIngredientCost').textContent = totalIngredientCost.toFixed(2);
-        document.getElementById('orderSummaryIngredient').textContent = totalIngredientCost.toFixed(2);
-
-        // Get costs from form
-        const packagingCost = parseFloat(document.getElementById('orderPackagingCost').value) || 0;
-        const electricity = parseFloat(document.getElementById('orderElectricity').value) || 0;
-        const gas = parseFloat(document.getElementById('orderGas').value) || 0;
-        const water = parseFloat(document.getElementById('orderWater').value) || 0;
-        const labour = parseFloat(document.getElementById('orderLabour').value) || 0;
-        const transport = parseFloat(document.getElementById('orderTransport').value) || 0;
-        const profitPercentage = parseFloat(document.getElementById('orderProfitPercentage').value) || 0;
-
-        // Calculate utilities
-        const utilities = electricity + gas + water;
-
-        // Update display
-        document.getElementById('orderSummaryDecoration').textContent = totalDecorationCost.toFixed(2);
-        document.getElementById('orderSummaryPackaging').textContent = packagingCost.toFixed(2);
-        document.getElementById('orderSummaryLabour').textContent = labour.toFixed(2);
-        document.getElementById('orderSummaryUtilities').textContent = utilities.toFixed(2);
-        document.getElementById('orderSummaryTransport').textContent = transport.toFixed(2);
-
-        // Calculate total production cost (ingredients + decorations + packaging + utilities + labour + transport)
-        const totalProduction = totalIngredientCost + totalDecorationCost + packagingCost + electricity + gas + water + labour + transport;
-        document.getElementById('orderSummaryTotalProduction').textContent = totalProduction.toFixed(2);
-
-        // Calculate profit and final price
-        const profit = totalProduction * (profitPercentage / 100);
-        const finalPrice = totalProduction + profit;
-
-        document.getElementById('orderSummaryProfit').textContent = profit.toFixed(2);
-        document.getElementById('orderSummaryFinalPrice').textContent = finalPrice.toFixed(2);
-    }
-
-    saveMultiRecipeOrder() {
-        if (!document.getElementById('orderName').value.trim()) {
-            alert('Please enter an order name');
             return;
         }
 
-        if (this.currentOrder.recipes.length === 0) {
-            alert('Please add at least one recipe to the order');
-            return;
-        }
+        tableBody.innerHTML = this.ingredients.map(item => `
+            <tr>
+                <td>${item.name}</td>
+                <td>${item.category}</td>
+                <td>${item.unit}</td>
+                <td>GH₵ ${Number(item.costPerUnit || item.purchasePrice || 0).toFixed(2)}</td>
+                <td>
+                    <button type="button" class="btn btn-danger" data-delete-ingredient="${item.id}">Delete</button>
+                </td>
+            </tr>
+        `).join('');
 
-        const orderToSave = {
-            id: Date.now(),
-            name: document.getElementById('orderName').value,
-            description: document.getElementById('orderDescription').value,
-            recipes: JSON.parse(JSON.stringify(this.currentOrder.recipes)),
-            decorations: JSON.parse(JSON.stringify(this.currentOrder.decorations)),
-            totalIngredientCost: this.currentOrder.totalIngredientCost,
-            totalDecorationCost: this.currentOrder.totalDecorationCost,
-            packagingCost: parseFloat(document.getElementById('orderPackagingCost').value) || 0,
-            electricity: parseFloat(document.getElementById('orderElectricity').value) || 0,
-            gas: parseFloat(document.getElementById('orderGas').value) || 0,
-            water: parseFloat(document.getElementById('orderWater').value) || 0,
-            labour: parseFloat(document.getElementById('orderLabour').value) || 0,
-            transport: parseFloat(document.getElementById('orderTransport').value) || 0,
-            profitPercentage: parseFloat(document.getElementById('orderProfitPercentage').value) || 0,
-            finalPrice: parseFloat(document.getElementById('orderSummaryFinalPrice').textContent),
-            savedAt: new Date().toLocaleString()
-        };
-
-        this.savedOrders.push(orderToSave);
-        this.saveToStorage('savedOrders', this.savedOrders);
-        alert(`Order "${orderToSave.name}" saved successfully!\nFinal Price: GH₵${orderToSave.finalPrice.toFixed(2)}`);
-        
-        // Show saved orders in console for verification
-        console.log('Saved orders:', this.savedOrders);
-    }
-
-    clearMultiRecipeOrder() {
-        if (confirm('Clear the current order?')) {
-            this.currentOrder = {
-                id: null,
-                name: '',
-                description: '',
-                recipes: [],
-                decorations: [],
-                totalIngredientCost: 0,
-                totalDecorationCost: 0,
-                createdAt: null
-            };
-            document.getElementById('orderName').value = '';
-            document.getElementById('orderDescription').value = '';
-            document.getElementById('multiRecipeSelect').value = '';
-            document.getElementById('orderDecorationSelect').value = '';
-            
-            // Reset cost inputs
-            document.getElementById('orderPackagingCost').value = '0';
-            document.getElementById('orderElectricity').value = '0';
-            document.getElementById('orderGas').value = '0';
-            document.getElementById('orderWater').value = '0';
-            document.getElementById('orderLabour').value = '0';
-            document.getElementById('orderTransport').value = '0';
-            document.getElementById('orderProfitPercentage').value = '50';
-            
-            this.renderOrderRecipes();
-            this.renderSelectedDecorations();
-            this.updateMultiRecipeOrderSummary();
-        }
-    }
-
-    // ==========================================
-    // SAVED ORDERS PAGE
-    // ==========================================
-
-    renderSavedOrders() {
-        const list = document.getElementById('savedOrdersList');
-        
-        if (this.savedOrders.length === 0) {
-            list.innerHTML = '<p class="empty-message">No saved orders yet. Create and save an order first!</p>';
-            return;
-        }
-
-        list.innerHTML = this.savedOrders.map(order => {
-            const decorationNames = order.decorations.map(d => d.name).join(', ');
-            const decorationDisplay = decorationNames ? `<br><strong>Decorations:</strong> ${decorationNames}` : '';
-            const totalCost = order.totalIngredientCost + order.totalDecorationCost + order.packagingCost + 
-                            order.electricity + order.gas + order.water + order.labour + order.transport;
-            
-            return `
-            <div class="item saved-order-card">
-                <div class="item-info">
-                    <div class="item-name">💰 ${order.name}</div>
-                    <div class="item-details">
-                        <strong>Description:</strong> ${order.description || 'No description'}<br>
-                        <strong>Recipes:</strong> ${order.recipes.length} recipe(s)<br>
-                        ${decorationDisplay}
-                        <strong>Total Production Cost:</strong> GH₵${totalCost.toFixed(2)}<br>
-                        <strong>Profit (${order.profitPercentage}%):</strong> GH₵${(totalCost * (order.profitPercentage / 100)).toFixed(2)}<br>
-                        <strong style="color: var(--pink-color);">Final Selling Price:</strong> <span style="color: var(--pink-color); font-size: 1.1em;">GH₵${order.finalPrice.toFixed(2)}</span><br>
-                        <strong>Saved:</strong> ${order.savedAt}
-                    </div>
-                </div>
-                <div class="item-actions">
-                    <button class="btn btn-primary btn-small" onclick="calculator.viewOrderDetails(${order.id})">📋 View</button>
-                    <button class="btn btn-danger btn-small" onclick="calculator.deleteOrder(${order.id})">Delete</button>
-                </div>
-            </div>
-        `;
-        }).join('');
-    }
-
-    viewOrderDetails(orderId) {
-        const order = this.savedOrders.find(o => o.id === orderId);
-        if (!order) return;
-
-        let details = `📋 ORDER: ${order.name}\n`;
-        details += `Description: ${order.description || 'No description'}\n`;
-        details += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
-
-        details += `🎂 RECIPES (${order.recipes.length}):\n`;
-        order.recipes.forEach((recipe, idx) => {
-            details += `  ${idx + 1}. ${recipe.name} (${recipe.scale}x) - GH₵${(recipe.ingredientCost * recipe.scale).toFixed(2)}\n`;
+        tableBody.querySelectorAll('[data-delete-ingredient]').forEach(button => {
+            button.addEventListener('click', () => this.deleteIngredient(Number(button.dataset.deleteIngredient)));
         });
-
-        details += `\n✨ DECORATIONS:\n`;
-        if (order.decorations.length > 0) {
-            order.decorations.forEach(dec => {
-                details += `  • ${dec.name} - GH₵${dec.price.toFixed(2)}\n`;
-            });
-        } else {
-            details += `  None\n`;
-        }
-
-        details += `\n💵 COST BREAKDOWN:\n`;
-        details += `  Ingredients:  GH₵${order.totalIngredientCost.toFixed(2)}\n`;
-        details += `  Decorations:  GH₵${order.totalDecorationCost.toFixed(2)}\n`;
-        details += `  Packaging:    GH₵${order.packagingCost.toFixed(2)}\n`;
-        details += `  Labour:       GH₵${order.labour.toFixed(2)}\n`;
-        details += `  Electricity:  GH₵${order.electricity.toFixed(2)}\n`;
-        details += `  Gas:          GH₵${order.gas.toFixed(2)}\n`;
-        details += `  Water:        GH₵${order.water.toFixed(2)}\n`;
-        details += `  Transport:    GH₵${order.transport.toFixed(2)}\n`;
-        
-        const totalProduction = order.totalIngredientCost + order.totalDecorationCost + order.packagingCost + 
-                               order.electricity + order.gas + order.water + order.labour + order.transport;
-        const profit = totalProduction * (order.profitPercentage / 100);
-
-        details += `  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
-        details += `  Production Cost: GH₵${totalProduction.toFixed(2)}\n`;
-        details += `  Profit (${order.profitPercentage}%):  GH₵${profit.toFixed(2)}\n`;
-        details += `  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
-        details += `  🎯 FINAL PRICE:  GH₵${order.finalPrice.toFixed(2)}\n`;
-        details += `\n  Saved: ${order.savedAt}`;
-
-        alert(details);
     }
 
-    deleteOrder(orderId) {
-        if (confirm('Are you sure you want to delete this order?')) {
-            this.savedOrders = this.savedOrders.filter(o => o.id !== orderId);
-            this.saveToStorage('savedOrders', this.savedOrders);
-            this.renderSavedOrders();
-        }
+    deleteIngredient(id) {
+        this.ingredients = this.ingredients.filter(item => item.id !== id);
+        this.saveToStorage('ingredients', this.ingredients);
+        this.renderIngredients();
     }
 
-    // ==========================================
-    // DECORATIONS MANAGEMENT
-    // ==========================================
+    addDecoration(event) {
+        event.preventDefault();
 
-    addDecoration(e) {
-        e.preventDefault();
+        const nameInput = document.getElementById('decorationName');
+        const categoryInput = document.getElementById('decorationCategory');
+        const costInput = document.getElementById('decorationCost');
+
+        if (!nameInput || !categoryInput || !costInput) return;
+
+        const name = nameInput.value.trim();
+        const category = categoryInput.value.trim();
+        const cost = parseFloat(costInput.value);
+
+        if (!name || !category || Number.isNaN(cost) || cost < 0) {
+            alert('Please fill in all decoration fields correctly.');
+            return;
+        }
 
         const decoration = {
             id: Date.now(),
-            name: document.getElementById('decorationName').value,
-            price: parseFloat(document.getElementById('decorationPrice').value)
+            name,
+            category,
+            price: cost
         };
-
-        if (!decoration.name || decoration.price < 0) {
-            alert('Please fill in all fields with valid values');
-            return;
-        }
 
         this.decorations.push(decoration);
         this.saveToStorage('decorations', this.decorations);
         this.renderDecorations();
-        this.updateDecorationDropdown();
-
-        document.getElementById('decorationForm').reset();
-        alert('Decoration added successfully!');
-    }
-
-    deleteDecoration(id) {
-        if (confirm('Are you sure you want to delete this decoration?')) {
-            this.decorations = this.decorations.filter(dec => dec.id !== id);
-            this.saveToStorage('decorations', this.decorations);
-            this.renderDecorations();
-            this.updateDecorationDropdown();
-        }
+        event.target.reset();
+        alert('Decoration added successfully.');
     }
 
     renderDecorations() {
-        const list = document.getElementById('decorationsList');
-        
+        const tableBody = document.querySelector('#decorationTable tbody');
+        if (!tableBody) return;
+
         if (this.decorations.length === 0) {
-            list.innerHTML = '<p class="empty-message">No decorations added yet.</p>';
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="4">No decorations saved yet.</td>
+                </tr>
+            `;
             return;
         }
 
-        list.innerHTML = this.decorations.map(dec => `
-            <div class="item">
-                <div class="item-info">
-                    <div class="item-name">✨ ${dec.name}</div>
-                    <div class="item-details">Price: GH₵${dec.price.toFixed(2)}</div>
-                </div>
-                <div class="item-actions">
-                    <button class="btn btn-edit btn-small" onclick="calculator.editDecoration(${dec.id})">Edit</button>
-                    <button class="btn btn-danger btn-small" onclick="calculator.deleteDecoration(${dec.id})">Delete</button>
-                </div>
-            </div>
+        tableBody.innerHTML = this.decorations.map(item => `
+            <tr>
+                <td>${item.name}</td>
+                <td>${item.category}</td>
+                <td>GH₵ ${Number(item.price || 0).toFixed(2)}</td>
+                <td>
+                    <button type="button" class="btn btn-danger" data-delete-decoration="${item.id}">Delete</button>
+                </td>
+            </tr>
         `).join('');
+
+        tableBody.querySelectorAll('[data-delete-decoration]').forEach(button => {
+            button.addEventListener('click', () => this.deleteDecoration(Number(button.dataset.deleteDecoration)));
+        });
     }
 
-    editDecoration(id) {
-        const decoration = this.decorations.find(dec => dec.id === id);
-        if (!decoration) return;
+    deleteDecoration(id) {
+        this.decorations = this.decorations.filter(item => item.id !== id);
+        this.saveToStorage('decorations', this.decorations);
+        this.renderDecorations();
+    }
 
-        const newPrice = prompt(`Edit price for "${decoration.name}" (GH₵):`, decoration.price);
-        if (newPrice !== null && !isNaN(newPrice) && newPrice >= 0) {
-            decoration.price = parseFloat(newPrice);
-            this.saveToStorage('decorations', this.decorations);
-            this.renderDecorations();
-            this.updateDecorationDropdown();
+    addPackaging(event) {
+        event.preventDefault();
+        const nameInput = document.getElementById('packagingName');
+        const categoryInput = document.getElementById('packagingCategory');
+        const costInput = document.getElementById('packagingCost');
+
+        if (!nameInput || !categoryInput || !costInput) return;
+
+        const name = nameInput.value.trim();
+        const category = categoryInput.value.trim();
+        const cost = parseFloat(costInput.value);
+
+        if (!name || !category || Number.isNaN(cost) || cost < 0) {
+            alert('Please fill in all packaging fields correctly.');
+            return;
         }
-    }
 
-    // ==========================================
-    // PACKAGING MANAGEMENT
-    // ==========================================
-
-    renderPackaging() {
-        // Render boxes
-        const boxesContainer = document.getElementById('packagingBoxes');
-        boxesContainer.innerHTML = this.packaging.boxes.map((box, index) => `
-            <div class="packaging-item">
-                <label>${box.name}</label>
-                <input type="number" step="0.01" min="0" value="${box.price}" 
-                       class="packaging-price-input" data-category="boxes" data-index="${index}">
-            </div>
-        `).join('');
-
-        // Render boards
-        const boardsContainer = document.getElementById('packagingBoards');
-        boardsContainer.innerHTML = this.packaging.boards.map((board, index) => `
-            <div class="packaging-item">
-                <label>${board.name}</label>
-                <input type="number" step="0.01" min="0" value="${board.price}" 
-                       class="packaging-price-input" data-category="boards" data-index="${index}">
-            </div>
-        `).join('');
-
-        // Render other items
-        const otherContainer = document.getElementById('packagingOther');
-        otherContainer.innerHTML = this.packaging.other.map((item, index) => `
-            <div class="packaging-item">
-                <label>${item.name}</label>
-                <input type="number" step="0.01" min="0" value="${item.price}" 
-                       class="packaging-price-input" data-category="other" data-index="${index}">
-            </div>
-        `).join('');
-    }
-
-    updatePackagingPrice(input) {
-        const category = input.dataset.category;
-        const index = parseInt(input.dataset.index);
-        const newPrice = parseFloat(input.value) || 0;
-
-        this.packaging[category][index].price = newPrice;
+        const packagingItem = { name, category, costPerUnit: cost, price: cost };
+        this.packaging[category] = this.packaging[category] || [];
+        this.packaging[category].push(packagingItem);
         this.saveToStorage('packaging', this.packaging);
-        this.updateCostSummary();
-    }
-
-    // ==========================================
-    // COST SUMMARY
-    // ==========================================
-
-    updateCostSummary() {
-        // Calculate base ingredient cost (before scaling)
-        const baseIngredientCost = this.currentRecipe.ingredients.reduce((sum, ing) => sum + ing.cost, 0);
-        this.currentRecipe.baseIngredientCost = baseIngredientCost;
-        
-        // Calculate scaled ingredient cost
-        const scale = this.currentRecipe.scale || 1;
-        const scaledIngredientCost = baseIngredientCost * scale;
-        this.currentRecipe.ingredientCost = scaledIngredientCost;
-        
-        // Display both costs
-        document.getElementById('ingredientCostBase').textContent = baseIngredientCost.toFixed(2);
-        document.getElementById('ingredientCostScaled').textContent = scaledIngredientCost.toFixed(2);
-        document.getElementById('summaryIngredientCost').textContent = scaledIngredientCost.toFixed(2);
-
-        // Get costs from form
-        const packagingCost = parseFloat(document.getElementById('summaryPackagingCost').value) || 0;
-        const electricity = parseFloat(document.getElementById('summaryElectricity').value) || 0;
-        const gas = parseFloat(document.getElementById('summaryGas').value) || 0;
-        const water = parseFloat(document.getElementById('summaryWater').value) || 0;
-        const labour = parseFloat(document.getElementById('summaryLabour').value) || 0;
-        const transport = parseFloat(document.getElementById('summaryTransport').value) || 0;
-        const decorationCost = parseFloat(document.getElementById('summaryDecorationCost').value) || 0;
-        const profitPercentage = parseFloat(document.getElementById('profitPercentage').value) || 0;
-
-        // Calculate utilities
-        const utilities = electricity + gas + water;
-
-        // Update display
-        document.getElementById('summaryDecorationDisplay').textContent = decorationCost.toFixed(2);
-        document.getElementById('summaryPackagingDisplay').textContent = packagingCost.toFixed(2);
-        document.getElementById('summaryLabourDisplay').textContent = labour.toFixed(2);
-        document.getElementById('summaryUtilitiesDisplay').textContent = utilities.toFixed(2);
-        document.getElementById('summaryTransportDisplay').textContent = transport.toFixed(2);
-
-        // Calculate total production cost (using scaled ingredient cost)
-        const totalProduction = scaledIngredientCost + packagingCost + electricity + gas + water + labour + transport + decorationCost;
-        document.getElementById('summaryTotalProduction').textContent = totalProduction.toFixed(2);
-
-        // Calculate profit and final price
-        const profit = totalProduction * (profitPercentage / 100);
-        const finalPrice = totalProduction + profit;
-
-        document.getElementById('summaryProfit').textContent = profit.toFixed(2);
-        document.getElementById('summaryFinalPrice').textContent = finalPrice.toFixed(2);
+        event.target.reset();
+        alert('Packaging item added successfully.');
     }
 }
 
-// ==========================================
-// INITIALIZE APP
-// ==========================================
-let calculator;
-
 document.addEventListener('DOMContentLoaded', () => {
-    calculator = new RecipeCostCalculator();
-    calculator.updateCostSummary();
-    calculator.updateMultiRecipeOrderSummary();
+    new RecipeCostCalculator();
 });
