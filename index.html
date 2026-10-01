@@ -7,22 +7,24 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <header class="app-header">
-        <div class="header-content">
-            <h1>🎂 Cake Recipe Cost Calculator</h1>
-        </div>
-    </header>
-
     <div class="app-container">
+        <!-- HEADER -->
+        <header class="app-header">
+            <div class="header-content">
+                <h1>🎂 Cake Recipe Cost Calculator</h1>
+            </div>
+        </header>
+
+        <!-- SIDEBAR NAVIGATION -->
         <aside class="sidebar">
             <nav class="sidebar-nav">
                 <div class="nav-section">
                     <h3 class="nav-section-title">Ingredients</h3>
-                    <button type="button" class="nav-button active" data-tab="ingredients">
+                    <button class="nav-button active" data-tab="ingredients">
                         <span class="nav-icon">📝</span>
                         Ingredients
                     </button>
-                    <button type="button" class="nav-button" data-tab="saved-ingredients">
+                    <button class="nav-button" data-tab="saved-ingredients">
                         <span class="nav-icon">💾</span>
                         Saved Ingredients
                     </button>
@@ -30,11 +32,11 @@
 
                 <div class="nav-section">
                     <h3 class="nav-section-title">Recipes</h3>
-                    <button type="button" class="nav-button" data-tab="recipe">
+                    <button class="nav-button" data-tab="recipe">
                         <span class="nav-icon">🍰</span>
                         Recipe
                     </button>
-                    <button type="button" class="nav-button" data-tab="saved-recipes">
+                    <button class="nav-button" data-tab="saved-recipes">
                         <span class="nav-icon">📚</span>
                         Saved Recipes
                     </button>
@@ -42,11 +44,11 @@
 
                 <div class="nav-section">
                     <h3 class="nav-section-title">Orders</h3>
-                    <button type="button" class="nav-button" data-tab="multi-recipe">
+                    <button class="nav-button" data-tab="multi-recipe">
                         <span class="nav-icon">🛒</span>
                         Multi-Recipe Order
                     </button>
-                    <button type="button" class="nav-button" data-tab="saved-orders">
+                    <button class="nav-button" data-tab="saved-orders">
                         <span class="nav-icon">📋</span>
                         Saved Orders
                     </button>
@@ -54,11 +56,11 @@
 
                 <div class="nav-section">
                     <h3 class="nav-section-title">Customization</h3>
-                    <button type="button" class="nav-button" data-tab="packaging">
+                    <button class="nav-button" data-tab="packaging">
                         <span class="nav-icon">📦</span>
                         Packaging
                     </button>
-                    <button type="button" class="nav-button" data-tab="decorations">
+                    <button class="nav-button" data-tab="decorations">
                         <span class="nav-icon">✨</span>
                         Decorations
                     </button>
@@ -66,7 +68,7 @@
 
                 <div class="nav-section">
                     <h3 class="nav-section-title">Reports</h3>
-                    <button type="button" class="nav-button" data-tab="summary">
+                    <button class="nav-button" data-tab="summary">
                         <span class="nav-icon">📊</span>
                         Cost Summary
                     </button>
@@ -74,20 +76,25 @@
             </nav>
         </aside>
 
+        <!-- MAIN CONTENT AREA -->
         <main class="main-content">
+            <!-- TOP RIGHT ACTION BUTTONS -->
             <div class="content-header">
                 <div class="page-title">
                     <h2 id="pageTitle">Ingredients</h2>
                 </div>
                 <div class="action-buttons">
-                    <button type="button" id="exportBtn" class="action-btn primary" title="Export data">📥 Export</button>
-                    <button type="button" id="importBtn" class="action-btn secondary" title="Import data">📤 Import</button>
-                    <button type="button" id="resetBtn" class="action-btn danger" title="Reset all data">🔄 Reset</button>
+                    <button id="exportBtn" class="action-btn primary" title="Export data">📥 Export</button>
+                    <button id="importBtn" class="action-btn secondary" title="Import data">📤 Import</button>
+                    <button id="resetBtn" class="action-btn danger" title="Reset all data">🔄 Reset</button>
                 </div>
             </div>
 
+            <!-- TAB CONTENT PAGES -->
+            <!-- INGREDIENTS TAB -->
             <div id="ingredients" class="tab-content active">
                 <h2>Ingredient Database</h2>
+                
                 <div class="form-section">
                     <h3>Add New Ingredient</h3>
                     <form id="ingredientForm">
@@ -149,36 +156,280 @@
                 </div>
             </div>
 
+            <!-- SAVED INGREDIENTS TAB -->
             <div id="saved-ingredients" class="tab-content">
                 <h2>Saved Ingredients Library</h2>
+                <div id="savedIngredientsContainer" class="items-grid">
+                </div>
             </div>
 
+            <!-- RECIPE TAB -->
             <div id="recipe" class="tab-content">
                 <h2>Recipe Builder</h2>
+
+                <div class="form-section">
+                    <h3>Create Recipe</h3>
+                    <form id="recipeForm">
+                        <div class="form-group">
+                            <label for="recipeName">Recipe Name *</label>
+                            <input type="text" id="recipeName" placeholder="e.g., Vanilla Sponge" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="recipeDescription">Description</label>
+                            <textarea id="recipeDescription" placeholder="Recipe details..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="recipeYield">Yield (e.g., 1 cake, 2 cakes) *</label>
+                            <input type="text" id="recipeYield" placeholder="e.g., 1" required>
+                        </div>
+
+                        <h4>Add Ingredients to Recipe</h4>
+                        <div id="recipeIngredientsContainer">
+                        </div>
+                        <button type="button" id="addIngrToRecipeBtn" class="btn btn-secondary">+ Add Ingredient</button>
+
+                        <button type="submit" class="btn btn-primary">Save Recipe</button>
+                    </form>
+                </div>
+
+                <div class="table-section">
+                    <h3>Recipe Summary</h3>
+                    <table id="recipeTable" class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Yield</th>
+                                <th>Total Cost (GH₵)</th>
+                                <th>Cost per Unit (GH₵)</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
+            <!-- SAVED RECIPES TAB -->
             <div id="saved-recipes" class="tab-content">
                 <h2>Recipe Library</h2>
+                <div id="savedRecipesContainer" class="items-grid">
+                </div>
             </div>
 
+            <!-- MULTI-RECIPE ORDER TAB -->
             <div id="multi-recipe" class="tab-content">
                 <h2>Multi-Recipe Order</h2>
+
+                <div class="form-section">
+                    <h3>Create Order</h3>
+                    <form id="orderForm">
+                        <div class="form-group">
+                            <label for="orderName">Order Name *</label>
+                            <input type="text" id="orderName" placeholder="e.g., Wedding Order - June" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="orderDate">Order Date</label>
+                            <input type="date" id="orderDate">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="orderClient">Client Name</label>
+                            <input type="text" id="orderClient" placeholder="e.g., John Doe">
+                        </div>
+
+                        <h4>Add Recipes to Order</h4>
+                        <div id="orderRecipesContainer">
+                        </div>
+                        <button type="button" id="addRecipeToOrderBtn" class="btn btn-secondary">+ Add Recipe</button>
+
+                        <h4>Order Adjustments</h4>
+                        <div class="form-group">
+                            <label for="orderDiscount">Discount (%) or (GH₵)</label>
+                            <div class="discount-group">
+                                <input type="number" id="orderDiscount" placeholder="0" step="0.01">
+                                <select id="discountType">
+                                    <option value="amount">GH₵</option>
+                                    <option value="percent">%</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="orderTax">Tax/Service Charge (%)</label>
+                            <input type="number" id="orderTax" placeholder="0" step="0.01">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Save Order</button>
+                    </form>
+                </div>
+
+                <div class="table-section">
+                    <h3>Order Summary</h3>
+                    <table id="orderTable" class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Order Name</th>
+                                <th>Client</th>
+                                <th>Date</th>
+                                <th>Total Cost (GH₵)</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
+            <!-- SAVED ORDERS TAB -->
             <div id="saved-orders" class="tab-content">
                 <h2>Order History</h2>
+                <div id="savedOrdersContainer" class="items-grid">
+                </div>
             </div>
 
+            <!-- PACKAGING TAB -->
             <div id="packaging" class="tab-content">
                 <h2>Packaging Materials</h2>
+
+                <div class="form-section">
+                    <h3>Add Packaging Material</h3>
+                    <form id="packagingForm">
+                        <div class="form-group">
+                            <label for="packagingName">Material Name *</label>
+                            <input type="text" id="packagingName" placeholder="e.g., Cake Box (10x10)" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="packagingCategory">Category *</label>
+                            <select id="packagingCategory" required>
+                                <option value="">Select category</option>
+                                <option value="box">Boxes</option>
+                                <option value="wrap">Wrapping</option>
+                                <option value="board">Cake Boards</option>
+                                <option value="container">Containers</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="packagingCost">Cost per Unit (GH₵) *</label>
+                            <input type="number" id="packagingCost" placeholder="0.00" step="0.01" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Add Packaging</button>
+                    </form>
+                </div>
+
+                <div class="table-section">
+                    <h3>Packaging Materials</h3>
+                    <table id="packagingTable" class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Material Name</th>
+                                <th>Category</th>
+                                <th>Cost per Unit (GH₵)</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
+            <!-- DECORATIONS TAB -->
             <div id="decorations" class="tab-content">
                 <h2>Decoration Items</h2>
+
+                <div class="form-section">
+                    <h3>Add Decoration</h3>
+                    <form id="decorationForm">
+                        <div class="form-group">
+                            <label for="decorationName">Decoration Name *</label>
+                            <input type="text" id="decorationName" placeholder="e.g., Red Roses (dozen)" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="decorationCategory">Category *</label>
+                            <select id="decorationCategory" required>
+                                <option value="">Select category</option>
+                                <option value="flowers">Flowers</option>
+                                <option value="candles">Candles</option>
+                                <option value="toppers">Cake Toppers</option>
+                                <option value="sprinkles">Sprinkles/Edibles</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="decorationCost">Cost per Unit (GH₵) *</label>
+                            <input type="number" id="decorationCost" placeholder="0.00" step="0.01" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Add Decoration</button>
+                    </form>
+                </div>
+
+                <div class="table-section">
+                    <h3>Decoration Items</h3>
+                    <table id="decorationTable" class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Decoration Name</th>
+                                <th>Category</th>
+                                <th>Cost per Unit (GH₵)</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
+            <!-- SUMMARY TAB -->
             <div id="summary" class="tab-content">
                 <h2>Cost Summary</h2>
+                <div class="summary-section">
+                    <div class="summary-card">
+                        <h3>Total Ingredients Cost</h3>
+                        <p class="summary-value" id="totalIngrCost">GH₵ 0.00</p>
+                    </div>
+                    <div class="summary-card">
+                        <h3>Total Packaging Cost</h3>
+                        <p class="summary-value" id="totalPackCost">GH₵ 0.00</p>
+                    </div>
+                    <div class="summary-card">
+                        <h3>Total Decoration Cost</h3>
+                        <p class="summary-value" id="totalDecCost">GH₵ 0.00</p>
+                    </div>
+                    <div class="summary-card highlight">
+                        <h3>Grand Total</h3>
+                        <p class="summary-value" id="grandTotal">GH₵ 0.00</p>
+                    </div>
+                </div>
+
+                <div class="table-section">
+                    <h3>Ingredient Breakdown</h3>
+                    <table id="summaryTable" class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Category</th>
+                                <th>Quantity</th>
+                                <th>Unit Cost (GH₵)</th>
+                                <th>Total Cost (GH₵)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </main>
     </div>
